@@ -55,7 +55,7 @@ project/
 │  │  ├─ PR4（特效、障碍物与结算逻辑）.md
 │  │  └─ PR5（UI、重置、配置与工程化收尾）.md
 │  └─ rule.md
-└─ readme.md
+└─ README.md
 ```
 
 ## 技术选择
