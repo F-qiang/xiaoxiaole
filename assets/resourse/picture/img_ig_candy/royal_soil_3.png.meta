@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e@6c48a",
+      "displayName": "royal_soil_3",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e@f9941",
+      "displayName": "royal_soil_3",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -2,
+        "offsetY": 2,
+        "trimX": 0,
+        "trimY": 0,
+        "width": 86,
+        "height": 86,
+        "rawWidth": 90,
+        "rawHeight": 90,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -43,
+            -43,
+            0,
+            43,
+            -43,
+            0,
+            -43,
+            43,
+            0,
+            43,
+            43,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            0,
+            90,
+            86,
+            90,
+            0,
+            4,
+            86,
+            4
+          ],
+          "nuv": [
+            0,
+            0.044444444444444446,
+            0.9555555555555556,
+            0.044444444444444446,
+            0,
+            1,
+            0.9555555555555556,
+            1
+          ],
+          "minPos": [
+            -43,
+            -43,
+            0
+          ],
+          "maxPos": [
+            43,
+            43,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "8356a5d9-7b3f-4273-b5cd-f6eaf0a8296e@6c48a"
+  }
+}

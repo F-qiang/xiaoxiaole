@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c@6c48a",
+      "displayName": "particle_die_candy_box_2",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c@f9941",
+      "displayName": "particle_die_candy_box_2",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0.5,
+        "trimX": 0,
+        "trimY": 10,
+        "width": 33,
+        "height": 12,
+        "rawWidth": 33,
+        "rawHeight": 33,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -16.5,
+            -6,
+            0,
+            16.5,
+            -6,
+            0,
+            -16.5,
+            6,
+            0,
+            16.5,
+            6,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            0,
+            23,
+            33,
+            23,
+            0,
+            11,
+            33,
+            11
+          ],
+          "nuv": [
+            0,
+            0.3333333333333333,
+            1,
+            0.3333333333333333,
+            0,
+            0.696969696969697,
+            1,
+            0.696969696969697
+          ],
+          "minPos": [
+            -16.5,
+            -6,
+            0
+          ],
+          "maxPos": [
+            16.5,
+            6,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "3f1a7814-6780-4a8d-aa28-3362eb86bc9c@6c48a"
+  }
+}

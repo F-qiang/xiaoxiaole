@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "24c79359-738e-4a1f-a5b1-848c1e1e75fe",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "24c79359-738e-4a1f-a5b1-848c1e1e75fe@6c48a",
+      "displayName": "royal_henhouse_5",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "24c79359-738e-4a1f-a5b1-848c1e1e75fe",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "24c79359-738e-4a1f-a5b1-848c1e1e75fe@f9941",
+      "displayName": "royal_henhouse_5",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": -2,
+        "trimX": 4,
+        "trimY": 4,
+        "width": 268,
+        "height": 104,
+        "rawWidth": 276,
+        "rawHeight": 108,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -134,
+            -52,
+            0,
+            134,
+            -52,
+            0,
+            -134,
+            52,
+            0,
+            134,
+            52,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            4,
+            104,
+            272,
+            104,
+            4,
+            0,
+            272,
+            0
+          ],
+          "nuv": [
+            0.014492753623188406,
+            0,
+            0.9855072463768116,
+            0,
+            0.014492753623188406,
+            0.9629629629629629,
+            0.9855072463768116,
+            0.9629629629629629
+          ],
+          "minPos": [
+            -134,
+            -52,
+            0
+          ],
+          "maxPos": [
+            134,
+            52,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "24c79359-738e-4a1f-a5b1-848c1e1e75fe@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "24c79359-738e-4a1f-a5b1-848c1e1e75fe@6c48a"
+  }
+}

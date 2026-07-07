@@ -1,0 +1,154 @@
+{
+  "ver": "1.0.6",
+  "importer": "bitmap-font",
+  "imported": true,
+  "uuid": "024bf9f4-4b08-446f-806e-4af43a505884",
+  "files": [
+    ".json"
+  ],
+  "subMetas": {},
+  "userData": {
+    "_fntConfig": {
+      "commonHeight": 80,
+      "fontSize": 32,
+      "atlasName": "shark_xing.png",
+      "fontDefDictionary": {
+        "9": {
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "xOffset": 0,
+          "yOffset": 0,
+          "xAdvance": 160
+        },
+        "32": {
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "xOffset": 0,
+          "yOffset": 0,
+          "xAdvance": 20
+        },
+        "48": {
+          "rect": {
+            "x": 0,
+            "y": 60,
+            "width": 38,
+            "height": 60
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 39
+        },
+        "49": {
+          "rect": {
+            "x": 76,
+            "y": 182,
+            "width": 30,
+            "height": 59
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 31
+        },
+        "50": {
+          "rect": {
+            "x": 76,
+            "y": 121,
+            "width": 36,
+            "height": 60
+          },
+          "xOffset": 0,
+          "yOffset": 19,
+          "xAdvance": 37
+        },
+        "51": {
+          "rect": {
+            "x": 39,
+            "y": 182,
+            "width": 36,
+            "height": 61
+          },
+          "xOffset": 0,
+          "yOffset": 19,
+          "xAdvance": 37
+        },
+        "52": {
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 40,
+            "height": 59
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 41
+        },
+        "53": {
+          "rect": {
+            "x": 39,
+            "y": 121,
+            "width": 36,
+            "height": 60
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 37
+        },
+        "54": {
+          "rect": {
+            "x": 39,
+            "y": 60,
+            "width": 38,
+            "height": 60
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 39
+        },
+        "55": {
+          "rect": {
+            "x": 41,
+            "y": 0,
+            "width": 37,
+            "height": 59
+          },
+          "xOffset": 0,
+          "yOffset": 20,
+          "xAdvance": 38
+        },
+        "56": {
+          "rect": {
+            "x": 0,
+            "y": 121,
+            "width": 38,
+            "height": 61
+          },
+          "xOffset": 0,
+          "yOffset": 19,
+          "xAdvance": 39
+        },
+        "57": {
+          "rect": {
+            "x": 0,
+            "y": 183,
+            "width": 38,
+            "height": 61
+          },
+          "xOffset": 0,
+          "yOffset": 19,
+          "xAdvance": 39
+        }
+      },
+      "kerningDict": {}
+    },
+    "fontSize": 32,
+    "textureUuid": "36f67f90-fd61-4fea-8695-a8838a978b96"
+  }
+}

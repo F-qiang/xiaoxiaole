@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "9f17d7d5-57a0-431d-877d-493d0d14ce50",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "9f17d7d5-57a0-431d-877d-493d0d14ce50@6c48a",
+      "displayName": "royal_leaves_jichu5",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "9f17d7d5-57a0-431d-877d-493d0d14ce50",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "9f17d7d5-57a0-431d-877d-493d0d14ce50@f9941",
+      "displayName": "royal_leaves_jichu5",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0.5,
+        "offsetY": -1,
+        "trimX": 7,
+        "trimY": 8,
+        "width": 87,
+        "height": 86,
+        "rawWidth": 100,
+        "rawHeight": 100,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -43.5,
+            -43,
+            0,
+            43.5,
+            -43,
+            0,
+            -43.5,
+            43,
+            0,
+            43.5,
+            43,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            7,
+            92,
+            94,
+            92,
+            7,
+            6,
+            94,
+            6
+          ],
+          "nuv": [
+            0.07,
+            0.06,
+            0.94,
+            0.06,
+            0.07,
+            0.92,
+            0.94,
+            0.92
+          ],
+          "minPos": [
+            -43.5,
+            -43,
+            0
+          ],
+          "maxPos": [
+            43.5,
+            43,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "9f17d7d5-57a0-431d-877d-493d0d14ce50@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "9f17d7d5-57a0-431d-877d-493d0d14ce50@6c48a"
+  }
+}

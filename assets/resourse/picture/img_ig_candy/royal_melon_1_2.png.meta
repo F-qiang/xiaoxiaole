@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "b73609a2-a4cc-458e-9b22-1764063233e0",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "b73609a2-a4cc-458e-9b22-1764063233e0@6c48a",
+      "displayName": "royal_melon_1_2",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "b73609a2-a4cc-458e-9b22-1764063233e0",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "b73609a2-a4cc-458e-9b22-1764063233e0@f9941",
+      "displayName": "royal_melon_1_2",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 24,
+        "trimY": 20,
+        "width": 61,
+        "height": 64,
+        "rawWidth": 109,
+        "rawHeight": 104,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -30.5,
+            -32,
+            0,
+            30.5,
+            -32,
+            0,
+            -30.5,
+            32,
+            0,
+            30.5,
+            32,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            24,
+            84,
+            85,
+            84,
+            24,
+            20,
+            85,
+            20
+          ],
+          "nuv": [
+            0.22018348623853212,
+            0.19230769230769232,
+            0.7798165137614679,
+            0.19230769230769232,
+            0.22018348623853212,
+            0.8076923076923077,
+            0.7798165137614679,
+            0.8076923076923077
+          ],
+          "minPos": [
+            -30.5,
+            -32,
+            0
+          ],
+          "maxPos": [
+            30.5,
+            32,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "b73609a2-a4cc-458e-9b22-1764063233e0@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "b73609a2-a4cc-458e-9b22-1764063233e0@6c48a"
+  }
+}

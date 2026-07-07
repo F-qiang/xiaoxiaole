@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "d686ce58-0c3c-4f0c-9873-90784471b9a7",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "d686ce58-0c3c-4f0c-9873-90784471b9a7@6c48a",
+      "displayName": "royal_flowerbox_18",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "d686ce58-0c3c-4f0c-9873-90784471b9a7",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "d686ce58-0c3c-4f0c-9873-90784471b9a7@f9941",
+      "displayName": "royal_flowerbox_18",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 18.5,
+        "offsetY": -15,
+        "trimX": 60,
+        "trimY": 63,
+        "width": 43,
+        "height": 39,
+        "rawWidth": 126,
+        "rawHeight": 135,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -21.5,
+            -19.5,
+            0,
+            21.5,
+            -19.5,
+            0,
+            -21.5,
+            19.5,
+            0,
+            21.5,
+            19.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            60,
+            72,
+            103,
+            72,
+            60,
+            33,
+            103,
+            33
+          ],
+          "nuv": [
+            0.47619047619047616,
+            0.24444444444444444,
+            0.8174603174603174,
+            0.24444444444444444,
+            0.47619047619047616,
+            0.5333333333333333,
+            0.8174603174603174,
+            0.5333333333333333
+          ],
+          "minPos": [
+            -21.5,
+            -19.5,
+            0
+          ],
+          "maxPos": [
+            21.5,
+            19.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "d686ce58-0c3c-4f0c-9873-90784471b9a7@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "d686ce58-0c3c-4f0c-9873-90784471b9a7@6c48a"
+  }
+}

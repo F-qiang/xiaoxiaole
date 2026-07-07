@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "1c20b68d-af42-44e1-b762-6210bd799dbb",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "1c20b68d-af42-44e1-b762-6210bd799dbb@6c48a",
+      "displayName": "royal_bushbox_liZi_14",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "1c20b68d-af42-44e1-b762-6210bd799dbb",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "1c20b68d-af42-44e1-b762-6210bd799dbb@f9941",
+      "displayName": "royal_bushbox_liZi_14",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 16.5,
+        "offsetY": -9,
+        "trimX": 122,
+        "trimY": 22,
+        "width": 114,
+        "height": 308,
+        "rawWidth": 325,
+        "rawHeight": 334,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -57,
+            -154,
+            0,
+            57,
+            -154,
+            0,
+            -57,
+            154,
+            0,
+            57,
+            154,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            122,
+            312,
+            236,
+            312,
+            122,
+            4,
+            236,
+            4
+          ],
+          "nuv": [
+            0.37538461538461537,
+            0.011976047904191617,
+            0.7261538461538461,
+            0.011976047904191617,
+            0.37538461538461537,
+            0.9341317365269461,
+            0.7261538461538461,
+            0.9341317365269461
+          ],
+          "minPos": [
+            -57,
+            -154,
+            0
+          ],
+          "maxPos": [
+            57,
+            154,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "1c20b68d-af42-44e1-b762-6210bd799dbb@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "1c20b68d-af42-44e1-b762-6210bd799dbb@6c48a"
+  }
+}
