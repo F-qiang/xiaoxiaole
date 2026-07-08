@@ -106,6 +106,7 @@ bool GameBoard::swapCells(Cell& lhs, Cell& rhs) {
     std::swap(lhs.colorType, rhs.colorType);
     std::swap(lhs.hasObstacle, rhs.hasObstacle);
     std::swap(lhs.isSelected, rhs.isSelected);
+    std::swap(lhs.uid, rhs.uid);
     return true;
 }
 
@@ -116,6 +117,7 @@ void GameBoard::clearCell(Cell& cell) {
     cell.colorType = 0;
     cell.hasObstacle = false;
     cell.isSelected = false;
+    cell.uid = 0;
 }
 
 void GameBoard::toggleSelection(Cell& cell) {
@@ -294,8 +296,14 @@ void GameBoard::collapseAndRefill() {
             cell.colorType = std::rand() % NORMAL_COLOR_COUNT;
             cell.hasObstacle = false;
             cell.isSelected = false;
+            cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
         }
     }
+}
+
+int GameBoard::getCellUid(int row, int col) const {
+    const auto* cell = getCell(row, col);
+    return cell == nullptr ? 0 : cell->uid;
 }
 
 void GameBoard::rebuildBoard() {
@@ -317,11 +325,13 @@ void GameBoard::rebuildBoard() {
                 cell.pieceType = PieceType::Obstacle;
                 cell.colorType = 0;
                 cell.hasObstacle = true;
+                cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
             } else {
                 cell.state = CellState::NormalPiece;
                 cell.pieceType = PieceType::Normal;
                 cell.colorType = generator.nextColor(mCells, row, col);
                 cell.hasObstacle = false;
+                cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
             }
         }
     }

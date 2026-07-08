@@ -83,9 +83,9 @@ void GameScene::createBoardPlaceholder() {
     refreshBoard();
 }
 
-void GameScene::refreshBoard() {
+void GameScene::refreshBoard(bool animateDrop) {
     if (mBoardRenderer != nullptr && mBoardModel != nullptr) {
-        mBoardRenderer->render(this, *mBoardModel);
+        mBoardRenderer->render(this, *mBoardModel, animateDrop);
     }
 }
 
@@ -99,6 +99,18 @@ void GameScene::playClearFeedback() {
     flash->runAction(Sequence::create(DelayTime::create(0.04F), FadeOut::create(0.08F), RemoveSelf::create(), nullptr));
 }
 
+void GameScene::playDropAnimation() {
+    auto root = Node::create();
+    if (root == nullptr) {
+        return;
+    }
+    root->setName("drop-root");
+    root->setLocalZOrder(50);
+    addChild(root);
+
+    root->runAction(Sequence::create(DelayTime::create(0.03F), FadeOut::create(0.0F), RemoveSelf::create(), nullptr));
+}
+
 void GameScene::resolveMatches() {
     if (mBoardModel == nullptr) {
         return;
@@ -107,7 +119,7 @@ void GameScene::resolveMatches() {
     std::vector<Cell> matchedCells;
     if (!mBoardModel->collectMatches(matchedCells)) {
         mIsAnimating = false;
-        refreshBoard();
+        refreshBoard(false);
         return;
     }
 
@@ -129,13 +141,14 @@ void GameScene::resolveMatches() {
         }
     }
     playClearFeedback();
-    refreshBoard();
+    refreshBoard(false);
 
     runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
         if (mBoardModel != nullptr) {
             mBoardModel->collapseAndRefill();
-            refreshBoard();
-            runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
+            playDropAnimation();
+            refreshBoard(true);
+            runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
                 mIsAnimating = false;
                 resolveMatches();
             }), nullptr));

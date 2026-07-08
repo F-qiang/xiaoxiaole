@@ -25,7 +25,7 @@ public:
      * @param parent 父节点，渲染出来的棋盘内容会挂到这个节点下。
      * @param board 棋盘逻辑数据。
      */
-    void render(cocos2d::Node* parent, const GameBoard& board);
+    void render(cocos2d::Node* parent, const GameBoard& board, bool animateDrop = false);
 
 private:
     /** 棋盘行数。 */
@@ -43,4 +43,6 @@ private:
     std::array<const char*, 4> mNormalPieceFiles;
     /** 障碍棋子的资源路径。 */
     const char* mObstaclePieceFile;
+    /** 上一次渲染时各格棋子的 UID 快照。 */
+    std::array<std::array<int, BOARD_COLS>, BOARD_ROWS> mPreviousUids{};
 };

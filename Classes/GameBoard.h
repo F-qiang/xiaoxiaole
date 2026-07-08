@@ -49,6 +49,7 @@ struct Cell {
     int colorType {0};
     bool hasObstacle {false};
     bool isSelected {false};
+    int uid {0};
 };
 
 /**
@@ -83,6 +84,7 @@ public:
     bool hasAnyMatch() const;
     bool collectMatches(std::vector<Cell>& matchedCells) const;
     void collapseAndRefill();
+    int getCellUid(int row, int col) const;
 
 private:
     std::array<std::array<Cell, COLS>, ROWS> mCells;
