@@ -21,6 +21,11 @@ void BoardRenderer::render(Node* parent, const GameBoard& board) {
         return;
     }
 
+    auto existingBoard = parent->getChildByName("board-layer");
+    if (existingBoard != nullptr) {
+        existingBoard->removeFromParent();
+    }
+
     auto winSize = Director::getInstance()->getVisibleSize();
     auto origin = Director::getInstance()->getVisibleOrigin();
 
@@ -30,6 +35,7 @@ void BoardRenderer::render(Node* parent, const GameBoard& board) {
     const float startY = origin.y + (winSize.height - boardHeight) * 0.5F;
 
     auto boardNode = Node::create();
+    boardNode->setName("board-layer");
     parent->addChild(boardNode);
 
     for (int row = 0; row < BOARD_ROWS; ++row) {
@@ -48,6 +54,9 @@ void BoardRenderer::render(Node* parent, const GameBoard& board) {
             if (piece != nullptr) {
                 piece->setPosition(Vec2(x, y));
                 piece->setScale(PIECE_SCALE);
+                if (cell->isSelected) {
+                    piece->setOpacity(180);
+                }
                 boardNode->addChild(piece);
             }
         }

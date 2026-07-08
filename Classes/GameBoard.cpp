@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <random>
+#include <vector>
 
 namespace {
 constexpr int NORMAL_COLOR_COUNT = 4;
@@ -67,12 +68,10 @@ GameBoard::GameBoard() {
 }
 
 void GameBoard::initialize() {
-    // 初始化时先构建一个满格棋盘，后续会接入具体关卡配置。
     rebuildBoard();
 }
 
 void GameBoard::reset() {
-    // 重置逻辑先简单回到初始满格状态。
     rebuildBoard();
 }
 
@@ -101,23 +100,101 @@ bool GameBoard::swapCells(Cell& lhs, Cell& rhs) {
         return false;
     }
 
-    // 当前阶段只交换格子内容，后续扩展时可加入动画状态和交换锁。
     std::swap(lhs.state, rhs.state);
     std::swap(lhs.pieceType, rhs.pieceType);
     std::swap(lhs.effectType, rhs.effectType);
     std::swap(lhs.colorType, rhs.colorType);
     std::swap(lhs.hasObstacle, rhs.hasObstacle);
+    std::swap(lhs.isSelected, rhs.isSelected);
     return true;
 }
 
 void GameBoard::clearCell(Cell& cell) {
-    // 清除格子时一并移除选中状态与障碍标记。
     cell.state = CellState::EmptyCell;
     cell.pieceType = PieceType::Normal;
     cell.effectType = EffectType::None;
     cell.colorType = 0;
     cell.hasObstacle = false;
     cell.isSelected = false;
+}
+
+void GameBoard::toggleSelection(Cell& cell) {
+    if (mSelectedCell != nullptr && mSelectedCell != &cell) {
+        mSelectedCell->isSelected = false;
+    }
+
+    cell.isSelected = !cell.isSelected;
+    mSelectedCell = cell.isSelected ? &cell : nullptr;
+}
+
+void GameBoard::clearSelection() {
+    if (mSelectedCell != nullptr) {
+        mSelectedCell->isSelected = false;
+        mSelectedCell = nullptr;
+    }
+}
+
+Cell* GameBoard::getSelectedCell() {
+    return mSelectedCell;
+}
+
+const Cell* GameBoard::getSelectedCell() const {
+    return mSelectedCell;
+}
+
+bool GameBoard::hasMatchAt(int row, int col) const {
+    const auto* cell = getCell(row, col);
+    if (cell == nullptr || cell->state != CellState::NormalPiece) {
+        return false;
+    }
+
+    const int color = cell->colorType;
+    int horizontal = 1;
+    for (int offset = 1; ; ++offset) {
+        const auto* left = getCell(row, col - offset);
+        if (left == nullptr || left->state != CellState::NormalPiece || left->colorType != color) {
+            break;
+        }
+        ++horizontal;
+    }
+    for (int offset = 1; ; ++offset) {
+        const auto* right = getCell(row, col + offset);
+        if (right == nullptr || right->state != CellState::NormalPiece || right->colorType != color) {
+            break;
+        }
+        ++horizontal;
+    }
+    if (horizontal >= 3) {
+        return true;
+    }
+
+    int vertical = 1;
+    for (int offset = 1; ; ++offset) {
+        const auto* up = getCell(row - offset, col);
+        if (up == nullptr || up->state != CellState::NormalPiece || up->colorType != color) {
+            break;
+        }
+        ++vertical;
+    }
+    for (int offset = 1; ; ++offset) {
+        const auto* down = getCell(row + offset, col);
+        if (down == nullptr || down->state != CellState::NormalPiece || down->colorType != color) {
+            break;
+        }
+        ++vertical;
+    }
+    return vertical >= 3;
+}
+
+bool GameBoard::hasAnyMatch() const {
+    for (std::size_t row = 0; row < ROWS; ++row) {
+        for (std::size_t col = 0; col < COLS; ++col) {
+            if (hasMatchAt(static_cast<int>(row), static_cast<int>(col))) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void GameBoard::rebuildBoard() {
