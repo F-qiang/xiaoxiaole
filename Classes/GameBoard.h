@@ -83,6 +83,9 @@ public:
     bool hasMatchAt(int row, int col) const;
     bool hasAnyMatch() const;
     bool collectMatches(std::vector<Cell>& matchedCells) const;
+    bool hasAnyValidMove() const;
+    void clearObstacle(Cell& cell);
+    std::size_t countObstacles() const;
     void collapseAndRefill();
     int getCellUid(int row, int col) const;
 

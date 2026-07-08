@@ -86,6 +86,10 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
                 } else {
                     piece->setPosition(Vec2(x, y));
                 }
+                if (isObstacle) {
+                    piece->setColor(Color3B::GRAY);
+                    piece->setOpacity(220);
+                }
                 if (cell->isSelected) {
                     piece->setOpacity(180);
                     piece->setColor(Color3B::YELLOW);

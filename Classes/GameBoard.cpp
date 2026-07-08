@@ -120,6 +120,125 @@ void GameBoard::clearCell(Cell& cell) {
     cell.uid = 0;
 }
 
+bool GameBoard::hasAnyValidMove() const {
+    const auto hasMatchInBoard = [](const std::array<std::array<Cell, COLS>, ROWS>& cells, int row, int col) {
+        const auto inBounds = [](int r, int c) {
+            return r >= 0 && r < static_cast<int>(ROWS) && c >= 0 && c < static_cast<int>(COLS);
+        };
+
+        const auto* cell = inBounds(row, col) ? &cells[static_cast<std::size_t>(row)][static_cast<std::size_t>(col)] : nullptr;
+        if (cell == nullptr || cell->state != CellState::NormalPiece) {
+            return false;
+        }
+
+        const int color = cell->colorType;
+        int horizontal = 1;
+        for (int offset = 1; ; ++offset) {
+            const int leftCol = col - offset;
+            if (!inBounds(row, leftCol)) {
+                break;
+            }
+            const auto* left = &cells[static_cast<std::size_t>(row)][static_cast<std::size_t>(leftCol)];
+            if (left->state != CellState::NormalPiece || left->colorType != color) {
+                break;
+            }
+            ++horizontal;
+        }
+        for (int offset = 1; ; ++offset) {
+            const int rightCol = col + offset;
+            if (!inBounds(row, rightCol)) {
+                break;
+            }
+            const auto* right = &cells[static_cast<std::size_t>(row)][static_cast<std::size_t>(rightCol)];
+            if (right->state != CellState::NormalPiece || right->colorType != color) {
+                break;
+            }
+            ++horizontal;
+        }
+        if (horizontal >= 3) {
+            return true;
+        }
+
+        int vertical = 1;
+        for (int offset = 1; ; ++offset) {
+            const int upRow = row - offset;
+            if (!inBounds(upRow, col)) {
+                break;
+            }
+            const auto* up = &cells[static_cast<std::size_t>(upRow)][static_cast<std::size_t>(col)];
+            if (up->state != CellState::NormalPiece || up->colorType != color) {
+                break;
+            }
+            ++vertical;
+        }
+        for (int offset = 1; ; ++offset) {
+            const int downRow = row + offset;
+            if (!inBounds(downRow, col)) {
+                break;
+            }
+            const auto* down = &cells[static_cast<std::size_t>(downRow)][static_cast<std::size_t>(col)];
+            if (down->state != CellState::NormalPiece || down->colorType != color) {
+                break;
+            }
+            ++vertical;
+        }
+        return vertical >= 3;
+    };
+
+    auto simulatedCells = mCells;
+    for (std::size_t row = 0; row < ROWS; ++row) {
+        for (std::size_t col = 0; col < COLS; ++col) {
+            if (simulatedCells[row][col].state != CellState::NormalPiece) {
+                continue;
+            }
+
+            if (col + 1 < COLS && simulatedCells[row][col + 1].state == CellState::NormalPiece) {
+                std::swap(simulatedCells[row][col].colorType, simulatedCells[row][col + 1].colorType);
+                const bool canMatch = hasMatchInBoard(simulatedCells, static_cast<int>(row), static_cast<int>(col)) || hasMatchInBoard(simulatedCells, static_cast<int>(row), static_cast<int>(col + 1));
+                std::swap(simulatedCells[row][col].colorType, simulatedCells[row][col + 1].colorType);
+                if (canMatch) {
+                    return true;
+                }
+            }
+
+            if (row + 1 < ROWS && simulatedCells[row + 1][col].state == CellState::NormalPiece) {
+                std::swap(simulatedCells[row][col].colorType, simulatedCells[row + 1][col].colorType);
+                const bool canMatch = hasMatchInBoard(simulatedCells, static_cast<int>(row), static_cast<int>(col)) || hasMatchInBoard(simulatedCells, static_cast<int>(row + 1), static_cast<int>(col));
+                std::swap(simulatedCells[row][col].colorType, simulatedCells[row + 1][col].colorType);
+                if (canMatch) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void GameBoard::clearObstacle(Cell& cell) {
+    if (cell.state != CellState::Obstacle) {
+        return;
+    }
+    cell.state = CellState::EmptyCell;
+    cell.pieceType = PieceType::Normal;
+    cell.effectType = EffectType::None;
+    cell.colorType = 0;
+    cell.hasObstacle = false;
+    cell.isSelected = false;
+    cell.uid = 0;
+}
+
+std::size_t GameBoard::countObstacles() const {
+    std::size_t count = 0;
+    for (const auto& row : mCells) {
+        for (const auto& cell : row) {
+            if (cell.state == CellState::Obstacle) {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
 void GameBoard::toggleSelection(Cell& cell) {
     if (mSelectedCell != nullptr && mSelectedCell != &cell) {
         mSelectedCell->isSelected = false;

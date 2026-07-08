@@ -19,13 +19,17 @@ namespace {
 constexpr float TITLE_TOP_OFFSET = 40.0F;
 constexpr float BOARD_TIP_BOTTOM_OFFSET = 70.0F;
 constexpr float STEP_LABEL_TOP_OFFSET = 80.0F;
+constexpr float GOAL_LABEL_TOP_OFFSET = 110.0F;
 constexpr const char* TITLE_TEXT = "Cocos2d-x 4.0 Match3 Prototype";
-constexpr const char* BOARD_TIP_TEXT = "Tap a piece, then tap an adjacent piece to swap";
-constexpr const char* STEP_TEXT_PREFIX = "Steps: ";
+constexpr const char* BOARD_TIP_TEXT = "\u70B9\u51FB\u68CB\u5B50\u540E\uFF0C\u518D\u70B9\u51FB\u76F8\u90BB\u68CB\u5B50\u8FDB\u884C\u4EA4\u6362";
+constexpr const char* STEP_TEXT_PREFIX = "\u6B65\u6570\uFF1A";
+constexpr const char* GOAL_TEXT_PREFIX = "\u5269\u4F59\u969C\u788D\uFF1A";
+constexpr const char* RESULT_FONT_NAME = "Arial";
 constexpr const char* FONT_NAME = "Arial";
 constexpr int TITLE_FONT_SIZE = 24;
 constexpr int TIP_FONT_SIZE = 20;
 constexpr int STEP_FONT_SIZE = 20;
+constexpr int GOAL_FONT_SIZE = 20;
 constexpr float BOARD_CELL_SIZE = 64.0F;
 constexpr float BOARD_MARGIN = 8.0F;
 constexpr float BOARD_SCALE = 0.42F;
@@ -58,6 +62,7 @@ bool GameScene::init() {
 
     createBoardPlaceholder();
     updateStepLabel();
+    updateGoalLabel();
 
     auto touchListener = cocos2d::EventListenerTouchOneByOne::create();
     touchListener->setSwallowTouches(true);
@@ -79,6 +84,15 @@ void GameScene::createBoardPlaceholder() {
     mStepLabel = cocos2d::Label::createWithSystemFont("", FONT_NAME, STEP_FONT_SIZE);
     mStepLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height - STEP_LABEL_TOP_OFFSET));
     addChild(mStepLabel);
+
+    mGoalLabel = cocos2d::Label::createWithSystemFont("", FONT_NAME, GOAL_FONT_SIZE);
+    mGoalLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height - GOAL_LABEL_TOP_OFFSET));
+    addChild(mGoalLabel);
+
+    mResultLabel = cocos2d::Label::createWithSystemFont("", RESULT_FONT_NAME, 32);
+    mResultLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height * 0.5F));
+    mResultLabel->setVisible(false);
+    addChild(mResultLabel);
 
     refreshBoard();
 }
@@ -112,7 +126,7 @@ void GameScene::playDropAnimation() {
 }
 
 void GameScene::resolveMatches() {
-    if (mBoardModel == nullptr) {
+    if (mBoardModel == nullptr || mLevelFinished) {
         return;
     }
 
@@ -120,10 +134,14 @@ void GameScene::resolveMatches() {
     if (!mBoardModel->collectMatches(matchedCells)) {
         mIsAnimating = false;
         refreshBoard(false);
+        checkLevelState();
         return;
     }
 
     mIsAnimating = true;
+    updateGoalLabel();
+    clearAdjacentObstacles(matchedCells);
+
     for (const auto& cell : matchedCells) {
         auto* flash = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
         if (flash != nullptr) {
@@ -144,21 +162,105 @@ void GameScene::resolveMatches() {
     refreshBoard(false);
 
     runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
-        if (mBoardModel != nullptr) {
+        if (mBoardModel != nullptr && !mLevelFinished) {
             mBoardModel->collapseAndRefill();
             playDropAnimation();
             refreshBoard(true);
             runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
                 mIsAnimating = false;
+                checkLevelState();
                 resolveMatches();
             }), nullptr));
         }
     }), nullptr));
 }
 
+void GameScene::checkLevelState() {
+    if (mLevelFinished) {
+        return;
+    }
+
+    const auto remainingObstacles = mBoardModel != nullptr ? mBoardModel->countObstacles() : 0;
+    if (remainingObstacles == 0) {
+        mLevelFinished = true;
+        showResultMessage("\u901A\u5173\u6210\u529F");
+        return;
+    }
+
+    if (!mBoardModel->hasAnyValidMove()) {
+        mLevelFinished = true;
+        showResultMessage("\u95EF\u5173\u5931\u8D25");
+    }
+}
+
+void GameScene::clearAdjacentObstacles(const std::vector<Cell>& matchedCells) {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+
+    for (const auto& cell : matchedCells) {
+        for (int dr = -1; dr <= 1; ++dr) {
+            for (int dc = -1; dc <= 1; ++dc) {
+                if (std::abs(dr) + std::abs(dc) != 1) {
+                    continue;
+                }
+                auto* neighbor = mBoardModel->getCell(cell.row + dr, cell.col + dc);
+                if (neighbor != nullptr && neighbor->state == CellState::Obstacle) {
+                    auto* shatter = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+                    if (shatter != nullptr) {
+                        shatter->setPosition(cellToWorld(neighbor->row, neighbor->col));
+                        shatter->setScale(BOARD_SCALE * 0.34F);
+                        shatter->setColor(Color3B::RED);
+                        shatter->setOpacity(240);
+                        shatter->setLocalZOrder(HIGHLIGHT_Z_ORDER + 2);
+                        addChild(shatter);
+
+                        auto* burst = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+                        if (burst != nullptr) {
+                            burst->setPosition(cellToWorld(neighbor->row, neighbor->col));
+                            burst->setScale(BOARD_SCALE * 0.20F);
+                            burst->setColor(Color3B::WHITE);
+                            burst->setOpacity(220);
+                            burst->setLocalZOrder(HIGHLIGHT_Z_ORDER + 3);
+                            addChild(burst);
+                            burst->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.12F, BOARD_SCALE * 0.92F), FadeOut::create(0.12F), nullptr), RemoveSelf::create(), nullptr));
+                        }
+
+                        shatter->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.16F, BOARD_SCALE * 0.68F), FadeOut::create(0.16F), nullptr), RemoveSelf::create(), nullptr));
+                    }
+                    if (shatter != nullptr) {
+                        shatter->runAction(Sequence::create(DelayTime::create(0.12F), CallFunc::create([this, neighbor]() {
+                            if (neighbor != nullptr && mBoardModel != nullptr) {
+                                mBoardModel->clearObstacle(*neighbor);
+                            }
+                        }), nullptr));
+                    } else if (neighbor != nullptr && mBoardModel != nullptr) {
+                        mBoardModel->clearObstacle(*neighbor);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void GameScene::showResultMessage(const char* message) {
+    if (mResultLabel == nullptr) {
+        return;
+    }
+    mResultLabel->setString(message == nullptr ? "" : message);
+    mResultLabel->setVisible(true);
+}
+
 void GameScene::updateStepLabel() {
     if (mStepLabel != nullptr) {
-        mStepLabel->setString(std::string(STEP_TEXT_PREFIX) + std::to_string(mStepCount));
+        mStepLabel->setString(std::string(STEP_TEXT_PREFIX) + std::to_string(mStepCount) + "/" + std::to_string(mMaxStepCount));
+    }
+}
+
+void GameScene::updateGoalLabel() {
+    if (mGoalLabel != nullptr) {
+        const auto remainingObstacles = mBoardModel != nullptr ? mBoardModel->countObstacles() : 0;
+        mGoalLabel->setString(std::string(GOAL_TEXT_PREFIX) + std::to_string(remainingObstacles) + " obstacle(s)");
     }
 }
 
@@ -199,7 +301,7 @@ void GameScene::playSwapFeedback(const Vec2& from, const Vec2& to) {
 
 bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     CC_UNUSED_PARAM(event);
-    if (mBoardModel == nullptr || mBoardRenderer == nullptr) {
+    if (mBoardModel == nullptr || mBoardRenderer == nullptr || mLevelFinished) {
         return false;
     }
 
