@@ -18,7 +18,10 @@ private:
     void createBoardPlaceholder();
     void updateStepLabel();
     void refreshBoard();
+    void resolveMatches();
+    void scheduleResolveMatches(float delaySeconds);
     void playSwapFeedback(const cocos2d::Vec2& from, const cocos2d::Vec2& to);
+    void playClearFeedback();
     cocos2d::Vec2 cellToWorld(int row, int col) const;
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
 
@@ -26,4 +29,5 @@ private:
     GameBoard* mBoardModel {nullptr};
     cocos2d::Label* mStepLabel {nullptr};
     int mStepCount {0};
+    bool mIsAnimating {false};
 };

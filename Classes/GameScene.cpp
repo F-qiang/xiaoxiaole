@@ -7,8 +7,11 @@
 #include "base/CCEventListenerTouch.h"
 #include "2d/CCLabel.h"
 #include "base/CCDirector.h"
+#include "2d/CCLayer.h"
+#include "2d/CCActionInterval.h"
+#include "2d/CCActionInstant.h"
 #include "2d/CCSprite.h"
-#include "base/CCScheduler.h"
+#include <vector>
 
 using namespace cocos2d;
 
@@ -27,6 +30,7 @@ constexpr float BOARD_CELL_SIZE = 64.0F;
 constexpr float BOARD_MARGIN = 8.0F;
 constexpr float BOARD_SCALE = 0.42F;
 constexpr float SWAP_ANIMATION_DURATION = 0.12F;
+constexpr float CLEAR_FADE_DURATION = 0.08F;
 constexpr float HIGHLIGHT_SCALE = 0.48F;
 constexpr int HIGHLIGHT_Z_ORDER = 10;
 }
@@ -85,6 +89,60 @@ void GameScene::refreshBoard() {
     }
 }
 
+void GameScene::playClearFeedback() {
+    auto flash = Layer::create();
+    if (flash == nullptr) {
+        return;
+    }
+    flash->setLocalZOrder(100);
+    addChild(flash);
+    flash->runAction(Sequence::create(DelayTime::create(0.04F), FadeOut::create(0.08F), RemoveSelf::create(), nullptr));
+}
+
+void GameScene::resolveMatches() {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+
+    std::vector<Cell> matchedCells;
+    if (!mBoardModel->collectMatches(matchedCells)) {
+        mIsAnimating = false;
+        refreshBoard();
+        return;
+    }
+
+    mIsAnimating = true;
+    for (const auto& cell : matchedCells) {
+        auto* flash = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+        if (flash != nullptr) {
+            flash->setPosition(cellToWorld(cell.row, cell.col));
+            flash->setScale(BOARD_SCALE * 0.42F);
+            flash->setColor(Color3B::WHITE);
+            flash->setOpacity(220);
+            flash->setLocalZOrder(HIGHLIGHT_Z_ORDER + 1);
+            addChild(flash);
+            flash->runAction(Sequence::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 0.15F), FadeOut::create(CLEAR_FADE_DURATION), RemoveSelf::create(), nullptr));
+        }
+        auto* boardCell = mBoardModel->getCell(cell.row, cell.col);
+        if (boardCell != nullptr) {
+            mBoardModel->clearCell(*boardCell);
+        }
+    }
+    playClearFeedback();
+    refreshBoard();
+
+    runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
+        if (mBoardModel != nullptr) {
+            mBoardModel->collapseAndRefill();
+            refreshBoard();
+            runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
+                mIsAnimating = false;
+                resolveMatches();
+            }), nullptr));
+        }
+    }), nullptr));
+}
+
 void GameScene::updateStepLabel() {
     if (mStepLabel != nullptr) {
         mStepLabel->setString(std::string(STEP_TEXT_PREFIX) + std::to_string(mStepCount));
@@ -122,6 +180,8 @@ void GameScene::playSwapFeedback(const Vec2& from, const Vec2& to) {
     highlightB->setLocalZOrder(HIGHLIGHT_Z_ORDER);
     addChild(highlightA);
     addChild(highlightB);
+    highlightA->runAction(Sequence::create(ScaleTo::create(SWAP_ANIMATION_DURATION, BOARD_SCALE * HIGHLIGHT_SCALE * 1.2F), FadeOut::create(SWAP_ANIMATION_DURATION), RemoveSelf::create(), nullptr));
+    highlightB->runAction(Sequence::create(ScaleTo::create(SWAP_ANIMATION_DURATION, BOARD_SCALE * HIGHLIGHT_SCALE * 1.2F), FadeOut::create(SWAP_ANIMATION_DURATION), RemoveSelf::create(), nullptr));
 }
 
 bool GameScene::onTouchBegan(Touch* touch, Event* event) {
@@ -183,6 +243,7 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
         if (hasMatchAfterSwap) {
             ++mStepCount;
             updateStepLabel();
+            resolveMatches();
         } else {
             mBoardModel->swapCells(*selected, *cell);
             playSwapFeedback(currentPos, selectedPos);

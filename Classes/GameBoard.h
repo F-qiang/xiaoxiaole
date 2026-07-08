@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstddef>
+#include <vector>
 
 /**
  * 棋盘状态枚举。
@@ -80,6 +81,8 @@ public:
     const Cell* getSelectedCell() const;
     bool hasMatchAt(int row, int col) const;
     bool hasAnyMatch() const;
+    bool collectMatches(std::vector<Cell>& matchedCells) const;
+    void collapseAndRefill();
 
 private:
     std::array<std::array<Cell, COLS>, ROWS> mCells;

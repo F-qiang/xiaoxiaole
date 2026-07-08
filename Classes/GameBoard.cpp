@@ -187,14 +187,115 @@ bool GameBoard::hasMatchAt(int row, int col) const {
 }
 
 bool GameBoard::hasAnyMatch() const {
+    std::vector<Cell> matchedCells;
+    return collectMatches(matchedCells);
+}
+
+bool GameBoard::collectMatches(std::vector<Cell>& matchedCells) const {
+    matchedCells.clear();
+
+    bool visited[ROWS][COLS] = {};
+
     for (std::size_t row = 0; row < ROWS; ++row) {
         for (std::size_t col = 0; col < COLS; ++col) {
-            if (hasMatchAt(static_cast<int>(row), static_cast<int>(col))) {
-                return true;
+            const auto* cell = getCell(static_cast<int>(row), static_cast<int>(col));
+            if (cell == nullptr || cell->state != CellState::NormalPiece) {
+                continue;
+            }
+
+            const int color = cell->colorType;
+            int left = static_cast<int>(col);
+            while (left > 0) {
+                const auto* prev = getCell(static_cast<int>(row), left - 1);
+                if (prev == nullptr || prev->state != CellState::NormalPiece || prev->colorType != color) {
+                    break;
+                }
+                --left;
+            }
+            int right = static_cast<int>(col);
+            while (right + 1 < static_cast<int>(COLS)) {
+                const auto* next = getCell(static_cast<int>(row), right + 1);
+                if (next == nullptr || next->state != CellState::NormalPiece || next->colorType != color) {
+                    break;
+                }
+                ++right;
+            }
+            if (right - left + 1 >= 3) {
+                for (int c = left; c <= right; ++c) {
+                    if (!visited[row][static_cast<std::size_t>(c)]) {
+                        visited[row][static_cast<std::size_t>(c)] = true;
+                        matchedCells.push_back(*getCell(static_cast<int>(row), c));
+                    }
+                }
+            }
+
+            int up = static_cast<int>(row);
+            while (up > 0) {
+                const auto* prev = getCell(up - 1, static_cast<int>(col));
+                if (prev == nullptr || prev->state != CellState::NormalPiece || prev->colorType != color) {
+                    break;
+                }
+                --up;
+            }
+            int down = static_cast<int>(row);
+            while (down + 1 < static_cast<int>(ROWS)) {
+                const auto* next = getCell(down + 1, static_cast<int>(col));
+                if (next == nullptr || next->state != CellState::NormalPiece || next->colorType != color) {
+                    break;
+                }
+                ++down;
+            }
+            if (down - up + 1 >= 3) {
+                for (int r = up; r <= down; ++r) {
+                    if (!visited[static_cast<std::size_t>(r)][col]) {
+                        visited[static_cast<std::size_t>(r)][col] = true;
+                        matchedCells.push_back(*getCell(r, static_cast<int>(col)));
+                    }
+                }
             }
         }
     }
-    return false;
+
+    return !matchedCells.empty();
+}
+
+void GameBoard::collapseAndRefill() {
+    for (std::size_t col = 0; col < COLS; ++col) {
+        int writeRow = static_cast<int>(ROWS) - 1;
+        for (int row = static_cast<int>(ROWS) - 1; row >= 0; --row) {
+            auto& cell = mCells[static_cast<std::size_t>(row)][col];
+            if (cell.state == CellState::Obstacle) {
+                cell.row = row;
+                cell.col = static_cast<int>(col);
+                writeRow = row - 1;
+                continue;
+            }
+            if (cell.state == CellState::NormalPiece) {
+                if (writeRow != row) {
+                    mCells[static_cast<std::size_t>(writeRow)][col] = cell;
+                    mCells[static_cast<std::size_t>(writeRow)][col].row = writeRow;
+                    mCells[static_cast<std::size_t>(writeRow)][col].col = static_cast<int>(col);
+                    clearCell(cell);
+                }
+                --writeRow;
+            }
+        }
+
+        for (int row = writeRow; row >= 0; --row) {
+            auto& cell = mCells[static_cast<std::size_t>(row)][col];
+            if (cell.state == CellState::Obstacle) {
+                continue;
+            }
+            cell.row = row;
+            cell.col = static_cast<int>(col);
+            cell.state = CellState::NormalPiece;
+            cell.pieceType = PieceType::Normal;
+            cell.effectType = EffectType::None;
+            cell.colorType = std::rand() % NORMAL_COLOR_COUNT;
+            cell.hasObstacle = false;
+            cell.isSelected = false;
+        }
+    }
 }
 
 void GameBoard::rebuildBoard() {

@@ -48,14 +48,15 @@ void BoardRenderer::render(Node* parent, const GameBoard& board) {
                 continue;
             }
 
-            auto piece = Sprite::create(cell->state == CellState::Obstacle
-                ? mObstaclePieceFile
-                : mNormalPieceFiles[static_cast<std::size_t>(cell->colorType % mNormalPieceFiles.size())]);
+            const bool isObstacle = cell->state == CellState::Obstacle;
+            const std::size_t fileIndex = static_cast<std::size_t>(cell->colorType < 0 ? 0 : cell->colorType) % mNormalPieceFiles.size();
+            auto piece = Sprite::create(isObstacle ? mObstaclePieceFile : mNormalPieceFiles[fileIndex]);
             if (piece != nullptr) {
                 piece->setPosition(Vec2(x, y));
                 piece->setScale(PIECE_SCALE);
                 if (cell->isSelected) {
                     piece->setOpacity(180);
+                    piece->setColor(Color3B::YELLOW);
                 }
                 boardNode->addChild(piece);
             }
