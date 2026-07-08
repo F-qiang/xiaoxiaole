@@ -17,6 +17,7 @@ add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos ${ENGINE_BINARY_PATH}/cocos/core)
 
 set(GAME_SOURCE
     Classes/AppDelegate.cpp
+    Classes/BoardRenderer.cpp
     Classes/GameBoard.cpp
     Classes/GameScene.cpp
     proj.win32/main.cpp
@@ -24,14 +25,14 @@ set(GAME_SOURCE
 
 set(GAME_HEADER
     Classes/AppDelegate.h
+    Classes/BoardRenderer.h
     Classes/GameBoard.h
     Classes/GameScene.h
     proj.win32/main.h
 )
 
 set(GAME_RES_FOLDER
-    "${CMAKE_CURRENT_SOURCE_DIR}/Resources"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resourse"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resourses"
 )
 
 set(_existing_res_folders)
@@ -69,6 +70,8 @@ target_include_directories(${PROJECT_NAME}
 )
 
 setup_cocos_app_config(${PROJECT_NAME})
+
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 if(WINDOWS)
     cocos_copy_target_dll(${PROJECT_NAME})

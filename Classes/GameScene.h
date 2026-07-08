@@ -2,15 +2,21 @@
 
 #include "2d/CCScene.h"
 
+class BoardRenderer;
+class GameBoard;
+
 /**
  * 游戏主场景。
  *
- * 当前阶段仅负责：
- * 1. 展示基础棋盘占位
- * 2. 为后续棋盘交互、消除、结算提供承载节点
+ * 负责组织场景生命周期、标题显示和棋盘节点挂载，不直接承担棋盘绘制细节。
  */
 class GameScene final : public cocos2d::Scene {
 public:
+    /**
+     * 析构场景，释放内部创建的渲染器和棋盘对象。
+     */
+    ~GameScene() override;
+
     /**
      * 创建场景实例的静态入口。
      */
@@ -19,7 +25,7 @@ public:
     /**
      * 场景初始化。
      *
-     * 这里负责创建标题、棋盘占位和后续玩法所需的容器节点。
+     * 这里负责创建标题，并委托渲染器绘制棋盘。
      */
     bool init() override;
 
@@ -27,7 +33,12 @@ public:
 
 private:
     /**
-     * 绘制 8 行 x 9 列棋盘占位，用于验证当前项目骨架是否可正常运行。
+     * 创建并渲染棋盘内容。
      */
     void createBoardPlaceholder();
+
+    /** 棋盘渲染器对象。 */
+    BoardRenderer* mBoardRenderer {nullptr};
+    /** 当前棋盘逻辑对象。 */
+    GameBoard* mBoardModel {nullptr};
 };

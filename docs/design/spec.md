@@ -263,6 +263,18 @@ Demo 阶段可先使用 JSON 保存；如后续需要复杂持久化，再切换
 - `SpecialPiece`：特效棋子
 - `Obstacle`：障碍物
 
+#### 当前 PR1 棋子资源约定
+
+- 普通棋子共 4 种，对应资源：
+  - `picture/img_game_common/goal_Animal_1_0.png`
+  - `picture/img_game_common/goal_Animal_2_0.png`
+  - `picture/img_game_common/goal_Animal_3_0.png`
+  - `picture/img_game_common/goal_Animal_4_0.png`
+- 障碍棋子资源：
+  - `picture/img_game_common/goal_Animalice.png`
+
+当前阶段先以这 4 种普通棋子 + 1 种障碍棋子的最小集合完成底座，后续再扩展更多内容资源。
+
 如果未来扩展多层障碍物，可以在障碍物内部增加血量或层级字段。
 
 ### 6.4 下落与补充（Fall and Refill）

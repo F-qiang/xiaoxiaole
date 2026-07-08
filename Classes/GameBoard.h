@@ -20,7 +20,7 @@ enum class CellState {
  */
 enum class PieceType {
     Normal,
-    Special
+    Obstacle
 };
 
 /**
@@ -58,9 +58,14 @@ struct Cell {
  */
 class GameBoard final {
 public:
+    /** 棋盘行数。 */
     static constexpr std::size_t ROWS = 8;
+    /** 棋盘列数。 */
     static constexpr std::size_t COLS = 9;
 
+    /**
+     * 创建棋盘对象，并在构造时完成初始盘面构建。
+     */
     GameBoard();
 
     /**
@@ -101,8 +106,18 @@ public:
     void clearCell(Cell& cell);
 
 private:
+    /**
+     * 棋盘二维缓存，保存当前所有格子的运行时状态。
+     */
     std::array<std::array<Cell, COLS>, ROWS> mCells;
 
+    /**
+     * 重新构建完整棋盘。
+     */
     void rebuildBoard();
+
+    /**
+     * 判断坐标是否在棋盘范围内。
+     */
     static bool isValidPosition(int row, int col);
 };
