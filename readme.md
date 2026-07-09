@@ -1,10 +1,10 @@
 # 消消乐（Cocos + C++）
 
 一个基于 **Cocos + C++** 的 2D 消除类 Demo 项目，包含棋盘交换、三消、障碍物清除、连锁结算、重置与结算界面等核心玩法。
-视频链接，共两个视频
-【消消乐】 https://www.bilibili.com/video/BV1CSMH6oEeY/?share_source=copy_web&vd_source=2e377d3d15da0f86a7287cd8bb4aa1c3
-【后续】 https://www.bilibili.com/video/BV1CSMH6oEBj/?share_source=copy_web&vd_source=2e377d3d15da0f86a7287cd8bb4aa1c3
-注：master分支是用Cocos Creator 做的半成品，仅供参考。该main分支为Cocos2d-x所做成品，是最终提交版本。
+视频链接，共两个视频 
+【消消乐】 https://www.bilibili.com/video/BV1CSMH6oEeY/?share_source=copy_web&vd_source=2e377d3d15da0f86a7287cd8bb4aa1c3 
+【后续】 https://www.bilibili.com/video/BV1CSMH6oEBj/?share_source=copy_web&vd_source=2e377d3d15da0f86a7287cd8bb4aa1c3 
+注：master分支是用Cocos Creator 做的半成品，仅供参考。该main分支为Cocos2d-x所做成品，是最终提交版本。 
 ## 项目定位
 
 本项目用于实现一个规则明确、结构清晰、便于扩展的消除类小游戏 Demo，适合作为：
