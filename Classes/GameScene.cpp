@@ -21,21 +21,21 @@ constexpr float BOARD_TIP_BOTTOM_OFFSET = 70.0F;
 constexpr float STEP_LABEL_TOP_OFFSET = 80.0F;
 constexpr float GOAL_LABEL_TOP_OFFSET = 110.0F;
 constexpr const char* TITLE_TEXT = "Cocos2d-x 4.0 Match3 Prototype";
-constexpr const char* BOARD_TIP_TEXT = "\u70B9\u51FB\u68CB\u5B50\u540E\uFF0C\u518D\u70B9\u51FB\u76F8\u90BB\u68CB\u5B50\u8FDB\u884C\u4EA4\u6362";
-constexpr const char* STEP_TEXT_PREFIX = "\u6B65\u6570\uFF1A";
-constexpr const char* GOAL_TEXT_PREFIX = "\u5269\u4F59\u969C\u788D\uFF1A";
-constexpr const char* RESULT_FONT_NAME = "Arial";
-constexpr const char* FONT_NAME = "Arial";
+constexpr const char* BOARD_TIP_TEXT = "Tap a piece, then tap an adjacent piece to swap.";
+constexpr const char* STEP_TEXT_PREFIX = "Steps: ";
+constexpr const char* GOAL_TEXT_PREFIX = "Obstacles left: ";
+constexpr const char* RESULT_FONT_NAME = "Microsoft YaHei";
+constexpr const char* FONT_NAME = "Microsoft YaHei";
 constexpr int TITLE_FONT_SIZE = 24;
 constexpr int TIP_FONT_SIZE = 20;
 constexpr int STEP_FONT_SIZE = 20;
 constexpr int GOAL_FONT_SIZE = 20;
 constexpr float BOARD_CELL_SIZE = 64.0F;
 constexpr float BOARD_MARGIN = 8.0F;
-constexpr float BOARD_SCALE = 0.42F;
+constexpr float BOARD_SCALE = 0.50F;
 constexpr float SWAP_ANIMATION_DURATION = 0.12F;
 constexpr float CLEAR_FADE_DURATION = 0.08F;
-constexpr float HIGHLIGHT_SCALE = 0.48F;
+constexpr float HIGHLIGHT_SCALE = 0.56F;
 constexpr int HIGHLIGHT_Z_ORDER = 10;
 }
 
@@ -94,7 +94,7 @@ void GameScene::createBoardPlaceholder() {
     mResultLabel->setVisible(false);
     addChild(mResultLabel);
 
-    refreshBoard();
+    refreshBoard(false);
 }
 
 void GameScene::refreshBoard(bool animateDrop) {
@@ -125,6 +125,157 @@ void GameScene::playDropAnimation() {
     root->runAction(Sequence::create(DelayTime::create(0.03F), FadeOut::create(0.0F), RemoveSelf::create(), nullptr));
 }
 
+void GameScene::runCollapseAndRefresh() {
+    if (mBoardModel == nullptr || mLevelFinished) {
+        return;
+    }
+    mBoardModel->collapseAndRefill();
+    mPendingSpecialRow = -1;
+    mPendingSpecialCol = -1;
+    mBoardModel->clearSelection();
+    playDropAnimation();
+    refreshBoard(true);
+    runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
+        if (mBoardModel == nullptr || mLevelFinished) {
+            return;
+        }
+        mIsAnimating = false;
+        refreshBoard(false);
+        checkLevelState();
+        resolveMatches();
+    }), nullptr));
+}
+
+namespace {
+enum class MatchSpecialType {
+    None,
+    Rocket,
+    ColorBomb,
+    Bomb,
+};
+
+struct MatchSummary {
+    bool hasLine4 {false};
+    bool hasFive {false};
+    bool hasTOrL {false};
+    int bestIndex {-1};
+    MatchSpecialType specialType {MatchSpecialType::None};
+};
+
+MatchSummary analyzeMatchShape(const std::vector<Cell>& matchedCells) {
+    MatchSummary summary;
+    if (matchedCells.empty()) {
+        return summary;
+    }
+
+    std::size_t rowCount[GameBoard::ROWS] = {};
+    std::size_t colCount[GameBoard::COLS] = {};
+    for (const auto& cell : matchedCells) {
+        if (cell.row >= 0 && cell.row < static_cast<int>(GameBoard::ROWS)) {
+            ++rowCount[static_cast<std::size_t>(cell.row)];
+        }
+        if (cell.col >= 0 && cell.col < static_cast<int>(GameBoard::COLS)) {
+            ++colCount[static_cast<std::size_t>(cell.col)];
+        }
+    }
+
+    std::size_t bestRunScore = 0;
+    for (std::size_t i = 0; i < matchedCells.size(); ++i) {
+        const auto& cell = matchedCells[i];
+        const auto rowMatch = rowCount[static_cast<std::size_t>(cell.row)];
+        const auto colMatch = colCount[static_cast<std::size_t>(cell.col)];
+        const auto runScore = rowMatch + colMatch;
+        if (rowMatch >= 5 || colMatch >= 5) {
+            summary.hasFive = true;
+            if (runScore >= bestRunScore) {
+                bestRunScore = runScore;
+                summary.bestIndex = static_cast<int>(i);
+            }
+            continue;
+        }
+        if (rowMatch >= 4 || colMatch >= 4) {
+            summary.hasLine4 = true;
+            if (runScore >= bestRunScore) {
+                bestRunScore = runScore;
+                summary.bestIndex = static_cast<int>(i);
+            }
+        }
+    }
+
+    std::size_t rowsWith3Plus = 0;
+    std::size_t colsWith3Plus = 0;
+    for (std::size_t i = 0; i < GameBoard::ROWS; ++i) {
+        if (rowCount[i] >= 3) {
+            ++rowsWith3Plus;
+        }
+    }
+    for (std::size_t i = 0; i < GameBoard::COLS; ++i) {
+        if (colCount[i] >= 3) {
+            ++colsWith3Plus;
+        }
+    }
+    summary.hasTOrL = rowsWith3Plus >= 2 && colsWith3Plus >= 2;
+    if (summary.hasFive || summary.hasTOrL) {
+        summary.specialType = MatchSpecialType::Bomb;
+    } else if (summary.hasLine4) {
+        summary.specialType = bestRunScore > 0 && rowCount[static_cast<std::size_t>(matchedCells[summary.bestIndex].row)] >= colCount[static_cast<std::size_t>(matchedCells[summary.bestIndex].col)]
+            ? MatchSpecialType::Rocket
+            : MatchSpecialType::ColorBomb;
+    }
+    if (summary.bestIndex < 0) {
+        summary.bestIndex = static_cast<int>(matchedCells.size() / 2);
+    }
+    return summary;
+}
+}
+
+bool GameScene::isLineMatch(const std::vector<Cell>& matchedCells) const {
+    return analyzeMatchShape(matchedCells).hasLine4;
+}
+
+bool GameScene::isTOrLMatch(const std::vector<Cell>& matchedCells) const {
+    return analyzeMatchShape(matchedCells).hasTOrL;
+}
+
+void GameScene::placeSpecialCandy(const std::vector<Cell>& matchedCells) {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+
+    const auto summary = analyzeMatchShape(matchedCells);
+    if (summary.specialType == MatchSpecialType::None) {
+        return;
+    }
+
+    const int bestIndex = summary.bestIndex;
+    if (bestIndex < 0 || bestIndex >= static_cast<int>(matchedCells.size())) {
+        return;
+    }
+
+    const auto& center = matchedCells[static_cast<std::size_t>(bestIndex)];
+    auto* boardCell = mBoardModel->getCell(center.row, center.col);
+    if (boardCell == nullptr) {
+        return;
+    }
+
+    boardCell->state = CellState::SpecialPiece;
+    boardCell->pieceType = PieceType::Normal;
+    boardCell->uid = center.uid;
+    switch (summary.specialType) {
+        case MatchSpecialType::Bomb:
+            boardCell->effectType = EffectType::Bomb;
+            break;
+        case MatchSpecialType::Rocket:
+            boardCell->effectType = EffectType::Rocket;
+            break;
+        case MatchSpecialType::ColorBomb:
+            boardCell->effectType = EffectType::ColorBomb;
+            break;
+        case MatchSpecialType::None:
+            break;
+    }
+}
+
 void GameScene::resolveMatches() {
     if (mBoardModel == nullptr || mLevelFinished) {
         return;
@@ -142,7 +293,19 @@ void GameScene::resolveMatches() {
     updateGoalLabel();
     clearAdjacentObstacles(matchedCells);
 
-    for (const auto& cell : matchedCells) {
+    const auto summary = analyzeMatchShape(matchedCells);
+    const int specialIndex = summary.specialType == MatchSpecialType::None ? -1 : summary.bestIndex;
+    if (specialIndex >= 0) {
+        mPendingSpecialRow = matchedCells[static_cast<std::size_t>(specialIndex)].row;
+        mPendingSpecialCol = matchedCells[static_cast<std::size_t>(specialIndex)].col;
+    } else {
+        mPendingSpecialRow = -1;
+        mPendingSpecialCol = -1;
+    }
+    placeSpecialCandy(matchedCells);
+
+    for (std::size_t i = 0; i < matchedCells.size(); ++i) {
+        const auto& cell = matchedCells[i];
         auto* flash = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
         if (flash != nullptr) {
             flash->setPosition(cellToWorld(cell.row, cell.col));
@@ -153,9 +316,19 @@ void GameScene::resolveMatches() {
             addChild(flash);
             flash->runAction(Sequence::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 0.15F), FadeOut::create(CLEAR_FADE_DURATION), RemoveSelf::create(), nullptr));
         }
+        if (specialIndex >= 0 && static_cast<int>(i) == specialIndex) {
+            continue;
+        }
         auto* boardCell = mBoardModel->getCell(cell.row, cell.col);
         if (boardCell != nullptr) {
-            mBoardModel->clearCell(*boardCell);
+            if (boardCell->row == mPendingSpecialRow && boardCell->col == mPendingSpecialCol) {
+                continue;
+            }
+            if (boardCell->state == CellState::Obstacle) {
+                mBoardModel->clearObstacle(*boardCell);
+            } else {
+                mBoardModel->clearCell(*boardCell);
+            }
         }
     }
     playClearFeedback();
@@ -164,10 +337,17 @@ void GameScene::resolveMatches() {
     runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
         if (mBoardModel != nullptr && !mLevelFinished) {
             mBoardModel->collapseAndRefill();
+            mPendingSpecialRow = -1;
+            mPendingSpecialCol = -1;
+            mBoardModel->clearSelection();
             playDropAnimation();
             refreshBoard(true);
             runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
+                if (mBoardModel == nullptr || mLevelFinished) {
+                    return;
+                }
                 mIsAnimating = false;
+                refreshBoard(false);
                 checkLevelState();
                 resolveMatches();
             }), nullptr));
@@ -183,15 +363,16 @@ void GameScene::checkLevelState() {
     const auto remainingObstacles = mBoardModel != nullptr ? mBoardModel->countObstacles() : 0;
     if (remainingObstacles == 0) {
         mLevelFinished = true;
-        showResultMessage("\u901A\u5173\u6210\u529F");
+        showResultMessage("Level Clear");
         return;
     }
 
     if (!mBoardModel->hasAnyValidMove()) {
         mLevelFinished = true;
-        showResultMessage("\u95EF\u5173\u5931\u8D25");
+        showResultMessage("Level Failed");
     }
 }
+
 
 void GameScene::clearAdjacentObstacles(const std::vector<Cell>& matchedCells) {
     if (mBoardModel == nullptr) {
@@ -206,41 +387,118 @@ void GameScene::clearAdjacentObstacles(const std::vector<Cell>& matchedCells) {
                 }
                 auto* neighbor = mBoardModel->getCell(cell.row + dr, cell.col + dc);
                 if (neighbor != nullptr && neighbor->state == CellState::Obstacle) {
-                    auto* shatter = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
-                    if (shatter != nullptr) {
-                        shatter->setPosition(cellToWorld(neighbor->row, neighbor->col));
-                        shatter->setScale(BOARD_SCALE * 0.34F);
-                        shatter->setColor(Color3B::RED);
-                        shatter->setOpacity(240);
-                        shatter->setLocalZOrder(HIGHLIGHT_Z_ORDER + 2);
-                        addChild(shatter);
-
-                        auto* burst = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
-                        if (burst != nullptr) {
-                            burst->setPosition(cellToWorld(neighbor->row, neighbor->col));
-                            burst->setScale(BOARD_SCALE * 0.20F);
-                            burst->setColor(Color3B::WHITE);
-                            burst->setOpacity(220);
-                            burst->setLocalZOrder(HIGHLIGHT_Z_ORDER + 3);
-                            addChild(burst);
-                            burst->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.12F, BOARD_SCALE * 0.92F), FadeOut::create(0.12F), nullptr), RemoveSelf::create(), nullptr));
-                        }
-
-                        shatter->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.16F, BOARD_SCALE * 0.68F), FadeOut::create(0.16F), nullptr), RemoveSelf::create(), nullptr));
-                    }
-                    if (shatter != nullptr) {
-                        shatter->runAction(Sequence::create(DelayTime::create(0.12F), CallFunc::create([this, neighbor]() {
-                            if (neighbor != nullptr && mBoardModel != nullptr) {
-                                mBoardModel->clearObstacle(*neighbor);
-                            }
-                        }), nullptr));
-                    } else if (neighbor != nullptr && mBoardModel != nullptr) {
-                        mBoardModel->clearObstacle(*neighbor);
-                    }
+                    playSpecialBurst(neighbor->row, neighbor->col, Color3B::RED, BOARD_SCALE * 0.34F, 0.16F, HIGHLIGHT_Z_ORDER + 2);
+                    mBoardModel->clearObstacle(*neighbor);
                 }
             }
         }
     }
+}
+
+void GameScene::playSpecialBurst(int row, int col, Color3B color, float scale, float duration, int zOrder) {
+    auto* effect = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+    if (effect == nullptr) {
+        return;
+    }
+    effect->setPosition(cellToWorld(row, col));
+    effect->setScale(scale);
+    effect->setColor(color);
+    effect->setOpacity(220);
+    effect->setLocalZOrder(zOrder);
+    addChild(effect);
+    effect->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration, scale * 1.25F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+}
+
+void GameScene::clearLineAt(int row, int col, bool vertical) {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+    playSpecialBurst(row, col, vertical ? Color3B::BLUE : Color3B::GREEN, BOARD_SCALE * 0.24F, 0.16F, HIGHLIGHT_Z_ORDER + 4);
+    for (std::size_t index = 0; index < (vertical ? GameBoard::ROWS : GameBoard::COLS); ++index) {
+        const int targetRow = vertical ? static_cast<int>(index) : row;
+        const int targetCol = vertical ? col : static_cast<int>(index);
+        auto* target = mBoardModel->getCell(targetRow, targetCol);
+        if (target == nullptr) {
+            continue;
+        }
+        if (target->state == CellState::Obstacle) {
+            mBoardModel->clearObstacle(*target);
+        } else if (target->state != CellState::EmptyCell) {
+            mBoardModel->clearCell(*target);
+        }
+    }
+}
+
+void GameScene::clearCrossAt(int row, int col) {
+    playSpecialBurst(row, col, Color3B::RED, BOARD_SCALE * 0.26F, 0.18F, HIGHLIGHT_Z_ORDER + 5);
+    clearLineAt(row, col, true);
+    clearLineAt(row, col, false);
+}
+
+void GameScene::triggerSpecialCombo(Cell& first, Cell& second) {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+
+    auto playComboBurst = [this](int row, int col, Color3B color, float scale, float duration, int zOrder) {
+        auto* effect = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+        if (effect == nullptr) {
+            return;
+        }
+        effect->setPosition(cellToWorld(row, col));
+        effect->setScale(scale);
+        effect->setColor(color);
+        effect->setOpacity(220);
+        effect->setLocalZOrder(zOrder);
+        addChild(effect);
+        effect->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration, scale * 1.25F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+    };
+
+    const bool firstBomb = GameBoard::isBombCandy(first);
+    const bool secondBomb = GameBoard::isBombCandy(second);
+    const bool firstVertical = GameBoard::isVerticalClearCandy(first);
+    const bool secondVertical = GameBoard::isVerticalClearCandy(second);
+    const bool firstHorizontal = GameBoard::isHorizontalClearCandy(first);
+    const bool secondHorizontal = GameBoard::isHorizontalClearCandy(second);
+
+    playComboBurst(first.row, first.col, Color3B::WHITE, BOARD_SCALE * 0.26F, 0.12F, HIGHLIGHT_Z_ORDER + 6);
+    playComboBurst(second.row, second.col, Color3B::WHITE, BOARD_SCALE * 0.26F, 0.12F, HIGHLIGHT_Z_ORDER + 6);
+
+    if (firstBomb || secondBomb) {
+        clearCrossAt(first.row, first.col);
+        clearCrossAt(second.row, second.col);
+    } else if ((firstVertical && secondHorizontal) || (firstHorizontal && secondVertical)) {
+        clearCrossAt(first.row, first.col);
+        clearCrossAt(second.row, second.col);
+        clearLineAt(first.row, first.col, true);
+        clearLineAt(second.row, second.col, false);
+    } else if (firstVertical || secondVertical) {
+        clearLineAt(firstVertical ? first.row : second.row, firstVertical ? first.col : second.col, true);
+    } else if (firstHorizontal || secondHorizontal) {
+        clearLineAt(firstHorizontal ? first.row : second.row, firstHorizontal ? first.col : second.col, false);
+    }
+
+    mBoardModel->clearCell(first);
+    mBoardModel->clearCell(second);
+    runCollapseAndRefresh();
+}
+
+void GameScene::triggerSpecialCandy(Cell& specialCell) {
+    if (mBoardModel == nullptr) {
+        return;
+    }
+
+    playSpecialBurst(specialCell.row, specialCell.col, Color3B::WHITE, BOARD_SCALE * 0.24F, 0.14F, HIGHLIGHT_Z_ORDER + 4);
+
+    if (GameBoard::isBombCandy(specialCell)) {
+        clearCrossAt(specialCell.row, specialCell.col);
+    } else if (GameBoard::isVerticalClearCandy(specialCell)) {
+        clearLineAt(specialCell.row, specialCell.col, true);
+    } else if (GameBoard::isHorizontalClearCandy(specialCell)) {
+        clearLineAt(specialCell.row, specialCell.col, false);
+    }
+    mBoardModel->clearCell(specialCell);
+    runCollapseAndRefresh();
 }
 
 void GameScene::showResultMessage(const char* message) {
@@ -317,7 +575,7 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     const float relativeY = location.y - startY;
     if (relativeX < 0.0F || relativeY < 0.0F || relativeX > boardWidth || relativeY > boardHeight) {
         mBoardModel->clearSelection();
-        refreshBoard();
+        refreshBoard(false);
         return true;
     }
 
@@ -326,27 +584,27 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     auto* cell = mBoardModel->getCell(row, col);
     if (cell == nullptr || cell->state == CellState::Obstacle) {
         mBoardModel->clearSelection();
-        refreshBoard();
+        refreshBoard(false);
         return true;
     }
 
     auto* selected = mBoardModel->getSelectedCell();
     if (selected == nullptr) {
         mBoardModel->toggleSelection(*cell);
-        refreshBoard();
+        refreshBoard(false);
         return true;
     }
 
     if (selected == cell) {
         mBoardModel->clearSelection();
-        refreshBoard();
+        refreshBoard(false);
         return true;
     }
 
     if (!GameBoard::isAdjacent(*selected, *cell)) {
         mBoardModel->clearSelection();
         mBoardModel->toggleSelection(*cell);
-        refreshBoard();
+        refreshBoard(false);
         return true;
     }
 
@@ -354,11 +612,28 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     const Vec2 currentPos = cellToWorld(cell->row, cell->col);
     if (mBoardModel->swapCells(*selected, *cell)) {
         playSwapFeedback(selectedPos, currentPos);
+        const bool selectedSpecial = GameBoard::isSpecialCandy(*selected);
+        const bool cellSpecial = GameBoard::isSpecialCandy(*cell);
         const bool hasMatchAfterSwap = mBoardModel->hasMatchAt(selected->row, selected->col) || mBoardModel->hasMatchAt(cell->row, cell->col);
-        if (hasMatchAfterSwap) {
+        if (selectedSpecial || cellSpecial || hasMatchAfterSwap) {
             ++mStepCount;
             updateStepLabel();
-            resolveMatches();
+            if (selectedSpecial && cellSpecial) {
+                triggerSpecialCombo(*selected, *cell);
+                refreshBoard(false);
+                runCollapseAndRefresh();
+            } else if (selectedSpecial || cellSpecial) {
+                if (selectedSpecial) {
+                    triggerSpecialCandy(*selected);
+                }
+                if (cellSpecial) {
+                    triggerSpecialCandy(*cell);
+                }
+                refreshBoard(false);
+                runCollapseAndRefresh();
+            } else {
+                resolveMatches();
+            }
         } else {
             mBoardModel->swapCells(*selected, *cell);
             playSwapFeedback(currentPos, selectedPos);
@@ -366,6 +641,6 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     }
 
     mBoardModel->clearSelection();
-    refreshBoard();
+    refreshBoard(false);
     return true;
 }

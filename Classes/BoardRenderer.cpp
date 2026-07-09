@@ -2,6 +2,8 @@
 
 #include "GameBoard.h"
 
+#include <algorithm>
+
 #include "2d/CCActionInterval.h"
 #include "2d/CCActionEase.h"
 #include "2d/CCLabel.h"
@@ -16,7 +18,10 @@ BoardRenderer::BoardRenderer()
           "picture/img_game_common/goal_Animal_2_0.png",
           "picture/img_game_common/goal_Animal_3_0.png",
           "picture/img_game_common/goal_Animal_4_0.png"}
-    , mObstaclePieceFile("picture/img_game_common/goal_Animalice.png") {
+    , mObstaclePieceFile("picture/img_game_common/goal_Animalice.png")
+    , mBombPieceFile("picture/img_ig_candy/boost_candy_bomb.png")
+    , mVerticalPieceFile("picture/img_ig_candy/boost_candy_hv.png")
+    , mHorizontalPieceFile("picture/img_ig_candy/royal_leaves_heng.png") {
     for (auto& row : mPreviousUids) {
         row.fill(0);
     }
@@ -41,6 +46,18 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
     const float startY = origin.y + (winSize.height - boardHeight) * 0.5F;
 
     std::array<std::array<int, BOARD_COLS>, BOARD_ROWS> previousSnapshot = mPreviousUids;
+    bool hasSnapshot = false;
+    for (const auto& rowSnapshot : previousSnapshot) {
+        for (const auto uid : rowSnapshot) {
+            if (uid != 0) {
+                hasSnapshot = true;
+                break;
+            }
+        }
+        if (hasSnapshot) {
+            break;
+        }
+    }
 
     auto boardNode = Node::create();
     boardNode->setName("board-layer");
@@ -56,12 +73,24 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
                 continue;
             }
 
-            const bool isObstacle = cell->state == CellState::Obstacle;
-            const std::size_t fileIndex = static_cast<std::size_t>(cell->colorType < 0 ? 0 : cell->colorType) % mNormalPieceFiles.size();
-            auto piece = Sprite::create(isObstacle ? mObstaclePieceFile : mNormalPieceFiles[fileIndex]);
+            const char* resource = mNormalPieceFiles[static_cast<std::size_t>(std::max(0, cell->colorType)) % mNormalPieceFiles.size()];
+            if (cell->state == CellState::SpecialPiece) {
+                if (cell->effectType == EffectType::Bomb) {
+                    resource = mBombPieceFile;
+                } else if (cell->effectType == EffectType::Rocket) {
+                    resource = mVerticalPieceFile;
+                } else if (cell->effectType == EffectType::ColorBomb) {
+                    resource = mHorizontalPieceFile;
+                }
+            } else if (cell->state == CellState::Obstacle) {
+                resource = mObstaclePieceFile;
+            }
+
+            auto piece = Sprite::create(resource);
             if (piece != nullptr) {
                 piece->setScale(PIECE_SCALE);
-                const bool shouldAnimate = animateDrop && !isObstacle && previousSnapshot[row][col] != cell->uid;
+                const bool isObstacle = cell->state == CellState::Obstacle;
+                const bool shouldAnimate = animateDrop && hasSnapshot && !isObstacle && previousSnapshot[row][col] != cell->uid;
                 if (shouldAnimate) {
                     int sourceRow = -1;
                     int sourceCol = col;
@@ -89,6 +118,10 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
                 if (isObstacle) {
                     piece->setColor(Color3B::GRAY);
                     piece->setOpacity(220);
+                }
+                if (cell->state == CellState::SpecialPiece) {
+                    piece->setColor(Color3B::WHITE);
+                    piece->setOpacity(255);
                 }
                 if (cell->isSelected) {
                     piece->setOpacity(180);

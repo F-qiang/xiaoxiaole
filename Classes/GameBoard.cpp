@@ -110,7 +110,38 @@ bool GameBoard::swapCells(Cell& lhs, Cell& rhs) {
     return true;
 }
 
+bool GameBoard::isBombCandy(const Cell& cell) {
+    return cell.state == CellState::SpecialPiece && cell.effectType == EffectType::Bomb;
+}
+
+bool GameBoard::isVerticalClearCandy(const Cell& cell) {
+    return cell.state == CellState::SpecialPiece && cell.effectType == EffectType::Rocket;
+}
+
+bool GameBoard::isHorizontalClearCandy(const Cell& cell) {
+    return cell.state == CellState::SpecialPiece && cell.effectType == EffectType::ColorBomb;
+}
+
+bool GameBoard::isSpecialCandy(const Cell& cell) {
+    return cell.state == CellState::SpecialPiece;
+}
+
+bool GameBoard::canMergeToSpecial(const Cell& lhs, const Cell& rhs) {
+    return lhs.state == CellState::NormalPiece && rhs.state == CellState::NormalPiece && lhs.colorType == rhs.colorType;
+}
+
 void GameBoard::clearCell(Cell& cell) {
+    if (cell.state == CellState::SpecialPiece) {
+        cell.state = CellState::EmptyCell;
+        cell.pieceType = PieceType::Normal;
+        cell.effectType = EffectType::None;
+        cell.colorType = 0;
+        cell.hasObstacle = false;
+        cell.isSelected = false;
+        cell.uid = 0;
+        return;
+    }
+
     cell.state = CellState::EmptyCell;
     cell.pieceType = PieceType::Normal;
     cell.effectType = EffectType::None;
@@ -381,41 +412,68 @@ bool GameBoard::collectMatches(std::vector<Cell>& matchedCells) const {
 }
 
 void GameBoard::collapseAndRefill() {
+    PieceGenerator generator;
     for (std::size_t col = 0; col < COLS; ++col) {
-        int writeRow = static_cast<int>(ROWS) - 1;
+        std::array<Cell, ROWS> newColumn{};
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            auto& cell = newColumn[row];
+            cell.row = static_cast<int>(row);
+            cell.col = static_cast<int>(col);
+            cell.state = CellState::EmptyCell;
+            cell.pieceType = PieceType::Normal;
+            cell.effectType = EffectType::None;
+            cell.colorType = 0;
+            cell.hasObstacle = false;
+            cell.isSelected = false;
+            cell.uid = 0;
+        }
+
+        std::vector<Cell> movableCells;
+        movableCells.reserve(ROWS);
         for (int row = static_cast<int>(ROWS) - 1; row >= 0; --row) {
-            auto& cell = mCells[static_cast<std::size_t>(row)][col];
+            const auto& cell = mCells[static_cast<std::size_t>(row)][col];
             if (cell.state == CellState::Obstacle) {
-                cell.row = row;
-                cell.col = static_cast<int>(col);
-                writeRow = row - 1;
-                continue;
-            }
-            if (cell.state == CellState::NormalPiece) {
-                if (writeRow != row) {
-                    mCells[static_cast<std::size_t>(writeRow)][col] = cell;
-                    mCells[static_cast<std::size_t>(writeRow)][col].row = writeRow;
-                    mCells[static_cast<std::size_t>(writeRow)][col].col = static_cast<int>(col);
-                    clearCell(cell);
-                }
-                --writeRow;
+                newColumn[static_cast<std::size_t>(row)] = cell;
+                newColumn[static_cast<std::size_t>(row)].row = row;
+                newColumn[static_cast<std::size_t>(row)].col = static_cast<int>(col);
+            } else if (cell.state == CellState::NormalPiece || cell.state == CellState::SpecialPiece) {
+                movableCells.push_back(cell);
             }
         }
 
+        int writeRow = static_cast<int>(ROWS) - 1;
+        for (const auto& cell : movableCells) {
+            while (writeRow >= 0 && newColumn[static_cast<std::size_t>(writeRow)].state == CellState::Obstacle) {
+                --writeRow;
+            }
+            if (writeRow < 0) {
+                break;
+            }
+            newColumn[static_cast<std::size_t>(writeRow)] = cell;
+            newColumn[static_cast<std::size_t>(writeRow)].row = writeRow;
+            newColumn[static_cast<std::size_t>(writeRow)].col = static_cast<int>(col);
+            newColumn[static_cast<std::size_t>(writeRow)].isSelected = false;
+            --writeRow;
+        }
+
         for (int row = writeRow; row >= 0; --row) {
-            auto& cell = mCells[static_cast<std::size_t>(row)][col];
-            if (cell.state == CellState::Obstacle) {
+            if (newColumn[static_cast<std::size_t>(row)].state == CellState::Obstacle) {
                 continue;
             }
+            auto& cell = newColumn[static_cast<std::size_t>(row)];
             cell.row = row;
             cell.col = static_cast<int>(col);
             cell.state = CellState::NormalPiece;
             cell.pieceType = PieceType::Normal;
             cell.effectType = EffectType::None;
-            cell.colorType = std::rand() % NORMAL_COLOR_COUNT;
+            cell.colorType = generator.nextColor(mCells, static_cast<std::size_t>(row), col);
             cell.hasObstacle = false;
             cell.isSelected = false;
             cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+        }
+
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            mCells[row][col] = newColumn[row];
         }
     }
 }

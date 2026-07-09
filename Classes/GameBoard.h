@@ -89,7 +89,14 @@ public:
     void collapseAndRefill();
     int getCellUid(int row, int col) const;
 
+    static bool isBombCandy(const Cell& cell);
+    static bool isVerticalClearCandy(const Cell& cell);
+    static bool isHorizontalClearCandy(const Cell& cell);
+    static bool isSpecialCandy(const Cell& cell);
+    static bool canMergeToSpecial(const Cell& lhs, const Cell& rhs);
+
 private:
+    static constexpr int SPECIAL_DROP_PROBABILITY = 12;
     std::array<std::array<Cell, COLS>, ROWS> mCells;
     Cell* mSelectedCell {nullptr};
 

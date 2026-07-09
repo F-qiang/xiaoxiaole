@@ -37,12 +37,18 @@ private:
     /** 格子之间的显示间距。 */
     static constexpr float BOARD_MARGIN = 8.0F;
     /** 棋子缩放比例。 */
-    static constexpr float PIECE_SCALE = 0.42F;
+    static constexpr float PIECE_SCALE = 0.50F;
 
     /** 普通棋子资源路径表。 */
     std::array<const char*, 4> mNormalPieceFiles;
     /** 障碍棋子的资源路径。 */
     const char* mObstaclePieceFile;
+    /** 炸弹棋子资源路径。 */
+    const char* mBombPieceFile;
+    /** 上下消除棋子资源路径。 */
+    const char* mVerticalPieceFile;
+    /** 左右消除棋子资源路径。 */
+    const char* mHorizontalPieceFile;
     /** 上一次渲染时各格棋子的 UID 快照。 */
     std::array<std::array<int, BOARD_COLS>, BOARD_ROWS> mPreviousUids{};
 };
