@@ -108,10 +108,12 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
 
             auto piece = Sprite::create(resource);
             if (piece != nullptr) {
-                const float scaledSize = (CELL_SIZE - pieceInset * 2.0F) * BOARD_SCALE_FACTOR;
-                const float pieceScale = std::min(pieceBaseScale, scaledSize / std::max(piece->getContentSize().width, piece->getContentSize().height));
-                piece->setScale(pieceScale);
                 const bool isObstacle = cell->state == CellState::Obstacle;
+                const float scaledSize = (CELL_SIZE - pieceInset * 2.0F) * BOARD_SCALE_FACTOR;
+                const float obstacleScaledSize = (CELL_SIZE - 1.0F) * BOARD_SCALE_FACTOR;
+                const float targetSize = isObstacle ? obstacleScaledSize : scaledSize;
+                const float pieceScale = std::min(pieceBaseScale, targetSize / std::max(piece->getContentSize().width, piece->getContentSize().height));
+                piece->setScale(pieceScale);
                 const bool shouldAnimate = animateDrop && hasSnapshot && !isObstacle && previousSnapshot[row][col] != cell->uid;
                 if (shouldAnimate) {
                     int sourceRow = -1;

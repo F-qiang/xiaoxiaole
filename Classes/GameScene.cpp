@@ -65,6 +65,7 @@ bool GameScene::init() {
     addChild(title);
 
     createBoardPlaceholder();
+    createRestartControl();
     updateStepLabel();
     updateGoalLabel();
 
@@ -86,15 +87,15 @@ void GameScene::createBoardPlaceholder() {
     addChild(boardTip);
 
     mStepLabel = cocos2d::Label::createWithSystemFont("", FONT_NAME, STEP_FONT_SIZE);
-    mStepLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height - STEP_LABEL_TOP_OFFSET));
+    mStepLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.25F, visibleOrigin.y + visibleSize.height - STEP_LABEL_TOP_OFFSET));
     addChild(mStepLabel);
 
     mGoalLabel = cocos2d::Label::createWithSystemFont("", FONT_NAME, GOAL_FONT_SIZE);
-    mGoalLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height - GOAL_LABEL_TOP_OFFSET));
+    mGoalLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.75F, visibleOrigin.y + visibleSize.height - GOAL_LABEL_TOP_OFFSET));
     addChild(mGoalLabel);
 
-    mResultLabel = cocos2d::Label::createWithSystemFont("", RESULT_FONT_NAME, 32);
-    mResultLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height * 0.5F));
+    mResultLabel = cocos2d::Label::createWithSystemFont("", RESULT_FONT_NAME, 24);
+    mResultLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + 58.0F));
     mResultLabel->setVisible(false);
     addChild(mResultLabel);
 
@@ -129,10 +130,15 @@ void GameScene::playDropAnimation() {
     root->runAction(Sequence::create(DelayTime::create(0.03F), FadeOut::create(0.0F), RemoveSelf::create(), nullptr));
 }
 
+void GameScene::setSceneState(SceneState state) {
+    mSceneState = state;
+}
+
 void GameScene::runCollapseAndRefresh() {
-    if (mBoardModel == nullptr || mLevelFinished) {
+    if (mBoardModel == nullptr || mSceneState == SceneState::Victory || mSceneState == SceneState::Failure || mSceneState == SceneState::Dropping) {
         return;
     }
+    setSceneState(SceneState::Dropping);
     mBoardModel->collapseAndRefill();
     mPendingSpecialRow = -1;
     mPendingSpecialCol = -1;
@@ -140,10 +146,10 @@ void GameScene::runCollapseAndRefresh() {
     playDropAnimation();
     refreshBoard(true);
     runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
-        if (mBoardModel == nullptr || mLevelFinished) {
+        if (mBoardModel == nullptr || mSceneState == SceneState::Victory || mSceneState == SceneState::Failure) {
             return;
         }
-        mIsAnimating = false;
+        setSceneState(SceneState::Idle);
         refreshBoard(false);
         checkLevelState();
         resolveMatches();
@@ -281,19 +287,19 @@ void GameScene::placeSpecialCandy(const std::vector<Cell>& matchedCells) {
 }
 
 void GameScene::resolveMatches() {
-    if (mBoardModel == nullptr || mLevelFinished) {
+    if (mBoardModel == nullptr || mSceneState == SceneState::Victory || mSceneState == SceneState::Failure) {
         return;
     }
 
     std::vector<Cell> matchedCells;
     if (!mBoardModel->collectMatches(matchedCells)) {
-        mIsAnimating = false;
+        setSceneState(SceneState::Idle);
         refreshBoard(false);
         checkLevelState();
         return;
     }
 
-    mIsAnimating = true;
+    setSceneState(SceneState::Resolving);
     updateGoalLabel();
     clearAdjacentObstacles(matchedCells);
 
@@ -339,18 +345,19 @@ void GameScene::resolveMatches() {
     refreshBoard(false);
 
     runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
-        if (mBoardModel != nullptr && !mLevelFinished) {
+        if (mBoardModel != nullptr && mSceneState != SceneState::Victory && mSceneState != SceneState::Failure) {
             mBoardModel->collapseAndRefill();
             mPendingSpecialRow = -1;
             mPendingSpecialCol = -1;
             mBoardModel->clearSelection();
+            setSceneState(SceneState::Dropping);
             playDropAnimation();
             refreshBoard(true);
             runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
-                if (mBoardModel == nullptr || mLevelFinished) {
+                if (mBoardModel == nullptr || mSceneState == SceneState::Victory || mSceneState == SceneState::Failure) {
                     return;
                 }
-                mIsAnimating = false;
+                setSceneState(SceneState::Idle);
                 refreshBoard(false);
                 checkLevelState();
                 resolveMatches();
@@ -360,20 +367,21 @@ void GameScene::resolveMatches() {
 }
 
 void GameScene::checkLevelState() {
-    if (mLevelFinished) {
+    if (mSceneState == SceneState::Victory || mSceneState == SceneState::Failure) {
         return;
     }
 
     const auto remainingObstacles = mBoardModel != nullptr ? mBoardModel->countObstacles() : 0;
+    updateGoalLabel();
     if (remainingObstacles == 0) {
-        mLevelFinished = true;
-        showResultMessage("Level Clear");
+        setSceneState(SceneState::Victory);
+        showResultMessage("通关成功");
         return;
     }
 
     if (!mBoardModel->hasAnyValidMove()) {
-        mLevelFinished = true;
-        showResultMessage("Level Failed");
+        setSceneState(SceneState::Failure);
+        showResultMessage("挑战失败");
     }
 }
 
@@ -435,8 +443,22 @@ void GameScene::clearLineAt(int row, int col, bool vertical) {
 
 void GameScene::clearCrossAt(int row, int col) {
     playSpecialBurst(row, col, Color3B::RED, BOARD_SCALE * 0.26F, 0.18F, HIGHLIGHT_Z_ORDER + 5);
-    clearLineAt(row, col, true);
-    clearLineAt(row, col, false);
+    if (mBoardModel == nullptr) {
+        return;
+    }
+    for (int dr = -1; dr <= 1; ++dr) {
+        for (int dc = -1; dc <= 1; ++dc) {
+            auto* target = mBoardModel->getCell(row + dr, col + dc);
+            if (target == nullptr) {
+                continue;
+            }
+            if (target->state == CellState::Obstacle) {
+                mBoardModel->clearObstacle(*target);
+            } else if (target->state != CellState::EmptyCell) {
+                mBoardModel->clearCell(*target);
+            }
+        }
+    }
 }
 
 void GameScene::triggerSpecialCombo(Cell& first, Cell& second) {
@@ -510,12 +532,25 @@ void GameScene::showResultMessage(const char* message) {
         return;
     }
     mResultLabel->setString(message == nullptr ? "" : message);
+    const auto visibleSize = Director::getInstance()->getVisibleSize();
+    const auto visibleOrigin = Director::getInstance()->getVisibleOrigin();
+    mResultLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + 58.0F));
     mResultLabel->setVisible(true);
+}
+
+void GameScene::hideResultMessage() {
+    if (mResultLabel != nullptr) {
+        mResultLabel->setVisible(false);
+        mResultLabel->setString("");
+    }
 }
 
 void GameScene::updateStepLabel() {
     if (mStepLabel != nullptr) {
-        mStepLabel->setString(std::string(STEP_TEXT_PREFIX) + std::to_string(mStepCount) + "/" + std::to_string(mMaxStepCount));
+        mStepLabel->setString(std::string(STEP_TEXT_PREFIX) + std::to_string(mStepCount));
+    }
+    if (mSceneState == SceneState::Idle && mBoardModel != nullptr) {
+        setSceneState(SceneState::Idle);
     }
 }
 
@@ -524,6 +559,49 @@ void GameScene::updateGoalLabel() {
         const auto remainingObstacles = mBoardModel != nullptr ? mBoardModel->countObstacles() : 0;
         mGoalLabel->setString(std::string(GOAL_TEXT_PREFIX) + std::to_string(remainingObstacles) + " obstacle(s)");
     }
+}
+
+void GameScene::createRestartControl() {
+    const auto visibleSize = Director::getInstance()->getVisibleSize();
+    const auto visibleOrigin = Director::getInstance()->getVisibleOrigin();
+    mRestartLabel = cocos2d::Label::createWithSystemFont("Restart", "Arial", 20);
+    if (mRestartLabel == nullptr) {
+        return;
+    }
+    mRestartLabel->setPosition(Vec2(visibleOrigin.x + visibleSize.width * 0.5F, visibleOrigin.y + visibleSize.height - 104.0F));
+    mRestartLabel->setColor(Color3B::YELLOW);
+    addChild(mRestartLabel, 20);
+}
+
+void GameScene::restartLevel() {
+    mStepCount = 0;
+    mClearedCount = 0;
+    mPendingSpecialRow = -1;
+    mPendingSpecialCol = -1;
+    mSceneState = SceneState::Idle;
+    if (mBoardModel != nullptr) {
+        mBoardModel->reset();
+        mBoardModel->clearSelection();
+    }
+    hideResultMessage();
+    updateStepLabel();
+    updateGoalLabel();
+    refreshBoard(false);
+}
+
+bool GameScene::isRestartButtonTouched(const Vec2& point) const {
+    if (mRestartLabel == nullptr) {
+        return false;
+    }
+    const auto size = mRestartLabel->getContentSize();
+    const auto pos = mRestartLabel->getPosition();
+    const float halfWidth = size.width * 0.5F + 20.0F;
+    const float halfHeight = size.height * 0.5F + 10.0F;
+    return point.x >= pos.x - halfWidth && point.x <= pos.x + halfWidth && point.y >= pos.y - halfHeight && point.y <= pos.y + halfHeight;
+}
+
+void GameScene::onRestartClicked(cocos2d::Ref*) {
+    restartLevel();
 }
 
 Vec2 GameScene::cellToWorld(int row, int col) const {
@@ -564,7 +642,7 @@ void GameScene::playSwapFeedback(const Vec2& from, const Vec2& to) {
 
 bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     CC_UNUSED_PARAM(event);
-    if (mBoardModel == nullptr || mBoardRenderer == nullptr || mLevelFinished) {
+    if (mBoardModel == nullptr || mBoardRenderer == nullptr || mSceneState == SceneState::Victory || mSceneState == SceneState::Failure || mSceneState == SceneState::Swapping || mSceneState == SceneState::Resolving || mSceneState == SceneState::Dropping) {
         return false;
     }
 
@@ -576,6 +654,11 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
     const float startX = visibleOrigin.x + (visibleSize.width - boardWidth) * 0.5F + BOARD_X_OFFSET;
     const float startY = visibleOrigin.y + (visibleSize.height - boardHeight) * 0.5F + BOARD_Y_OFFSET;
     const Vec2 location = touch->getLocation();
+
+    if (isRestartButtonTouched(location)) {
+        restartLevel();
+        return true;
+    }
 
     const float relativeX = location.x - startX;
     const float relativeY = location.y - startY;

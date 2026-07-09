@@ -17,7 +17,20 @@ public:
     CREATE_FUNC(GameScene);
 
 private:
+    enum class SceneState {
+        Idle,
+        Selected,
+        Swapping,
+        Resolving,
+        Dropping,
+        Victory,
+        Failure,
+    };
+
+    void setSceneState(SceneState state);
     void createBoardPlaceholder();
+    void createRestartControl();
+    void restartLevel();
     void updateStepLabel();
     void updateGoalLabel();
     void refreshBoard(bool animateDrop = false);
@@ -33,24 +46,27 @@ private:
     void clearCrossAt(int row, int col);
     void checkLevelState();
     void showResultMessage(const char* message);
+    void hideResultMessage();
     void playSwapFeedback(const cocos2d::Vec2& from, const cocos2d::Vec2& to);
     void playClearFeedback();
     void playDropAnimation();
     void runCollapseAndRefresh();
     cocos2d::Vec2 cellToWorld(int row, int col) const;
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onRestartClicked(cocos2d::Ref*);
+    bool isRestartButtonTouched(const cocos2d::Vec2& point) const;
 
     BoardRenderer* mBoardRenderer {nullptr};
     GameBoard* mBoardModel {nullptr};
     cocos2d::Label* mStepLabel {nullptr};
     cocos2d::Label* mGoalLabel {nullptr};
     cocos2d::Label* mResultLabel {nullptr};
+    cocos2d::Label* mRestartLabel {nullptr};
+    SceneState mSceneState {SceneState::Idle};
     int mStepCount {0};
     int mClearedCount {0};
     int mTargetClearCount {20};
     int mMaxStepCount {12};
     int mPendingSpecialRow {-1};
     int mPendingSpecialCol {-1};
-    bool mIsAnimating {false};
-    bool mLevelFinished {false};
 };

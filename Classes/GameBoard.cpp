@@ -1,5 +1,6 @@
 #include "GameBoard.h"
 
+#include "base/CCConsole.h"
 #include <algorithm>
 #include <cstdlib>
 #include <random>
@@ -24,7 +25,8 @@ public:
      * @param col 当前格子所在列。
      * @return 可直接使用的颜色编号。
      */
-    int nextColor(const std::array<std::array<Cell, GameBoard::COLS>, GameBoard::ROWS>& cells, std::size_t row, std::size_t col) {
+    template <typename BoardType>
+    int nextColor(const BoardType& cells, std::size_t row, std::size_t col) {
         for (;;) {
             const int candidate = mDistribution(mRng);
 
@@ -484,31 +486,131 @@ int GameBoard::getCellUid(int row, int col) const {
 }
 
 void GameBoard::rebuildBoard() {
-    PieceGenerator generator;
+    const auto hasMatchInGrid = [](const auto& cells) {
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            for (std::size_t col = 0; col < COLS; ++col) {
+                const auto& cell = cells[row][col];
+                if (cell.state != CellState::NormalPiece) {
+                    continue;
+                }
 
-    for (std::size_t row = 0; row < ROWS; ++row) {
-        for (std::size_t col = 0; col < COLS; ++col) {
-            auto& cell = mCells[row][col];
-            cell.row = static_cast<int>(row);
-            cell.col = static_cast<int>(col);
-            cell.effectType = EffectType::None;
-            cell.isSelected = false;
+                if (col + 2 < COLS
+                    && cells[row][col + 1].state == CellState::NormalPiece
+                    && cells[row][col + 2].state == CellState::NormalPiece
+                    && cell.colorType == cells[row][col + 1].colorType
+                    && cell.colorType == cells[row][col + 2].colorType) {
+                    return true;
+                }
 
-            const bool isBottomFourRows = row >= ROWS - 4;
-            const bool isMiddleOpeningRow = row == ROWS - 4 && col >= 3 && col <= 5;
+                if (row + 2 < ROWS
+                    && cells[row + 1][col].state == CellState::NormalPiece
+                    && cells[row + 2][col].state == CellState::NormalPiece
+                    && cell.colorType == cells[row + 1][col].colorType
+                    && cell.colorType == cells[row + 2][col].colorType) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
 
-            if (isBottomFourRows && !isMiddleOpeningRow) {
-                cell.state = CellState::Obstacle;
-                cell.pieceType = PieceType::Obstacle;
-                cell.colorType = 0;
-                cell.hasObstacle = true;
-                cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
-            } else {
-                cell.state = CellState::NormalPiece;
-                cell.pieceType = PieceType::Normal;
-                cell.colorType = generator.nextColor(mCells, row, col);
-                cell.hasObstacle = false;
-                cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+    std::array<std::array<Cell, COLS>, ROWS> candidateCells{};
+    for (int attempt = 0; attempt < 128; ++attempt) {
+        PieceGenerator generator;
+        candidateCells = {};
+
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            for (std::size_t col = 0; col < COLS; ++col) {
+                auto& cell = candidateCells[row][col];
+                cell.row = static_cast<int>(row);
+                cell.col = static_cast<int>(col);
+                cell.effectType = EffectType::None;
+                cell.isSelected = false;
+
+                const bool isBottomFourRows = row >= ROWS - 4;
+                const bool isMiddleOpeningRow = row == ROWS - 4 && col >= 3 && col <= 5;
+
+                if (isBottomFourRows && !isMiddleOpeningRow) {
+                    cell.state = CellState::Obstacle;
+                    cell.pieceType = PieceType::Obstacle;
+                    cell.colorType = 0;
+                    cell.hasObstacle = true;
+                    cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+                } else {
+                    cell.state = CellState::NormalPiece;
+                    cell.pieceType = PieceType::Normal;
+                    cell.colorType = generator.nextColor(candidateCells, row, col);
+                    cell.hasObstacle = false;
+                    cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+                }
+            }
+        }
+
+        mCells = candidateCells;
+        if (!hasMatchInGrid(mCells) && hasAnyValidMove()) {
+            return;
+        }
+    }
+
+    for (int attempt = 0; attempt < 128; ++attempt) {
+        mCells = candidateCells;
+
+        bool hasInitialMatch = hasMatchInGrid(mCells);
+        if (hasInitialMatch) {
+            cocos2d::log("[GameBoard] rebuild attempt %d: initial match detected.", attempt);
+        }
+
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            for (std::size_t col = 0; col < COLS; ++col) {
+                auto& cell = mCells[row][col];
+                if (cell.state != CellState::NormalPiece || !hasMatchAt(static_cast<int>(row), static_cast<int>(col))) {
+                    continue;
+                }
+
+                cocos2d::log("[GameBoard]   match cell at (%d,%d), color=%d", static_cast<int>(row), static_cast<int>(col), cell.colorType);
+                const int original = cell.colorType;
+                bool fixed = false;
+                for (int retry = 1; retry <= NORMAL_COLOR_COUNT; ++retry) {
+                    cell.colorType = (original + retry) % NORMAL_COLOR_COUNT;
+                    if (!hasMatchAt(static_cast<int>(row), static_cast<int>(col))) {
+                        fixed = true;
+                        break;
+                    }
+                }
+                if (!fixed) {
+                    cell.colorType = original;
+                }
+            }
+        }
+
+        if (!hasMatchInGrid(mCells) && hasAnyValidMove()) {
+            return;
+        }
+
+        candidateCells = {};
+        PieceGenerator generator;
+        for (std::size_t row = 0; row < ROWS; ++row) {
+            for (std::size_t col = 0; col < COLS; ++col) {
+                auto& cell = candidateCells[row][col];
+                cell.row = static_cast<int>(row);
+                cell.col = static_cast<int>(col);
+                cell.effectType = EffectType::None;
+                cell.isSelected = false;
+                const bool isBottomFourRows = row >= ROWS - 4;
+                const bool isMiddleOpeningRow = row == ROWS - 4 && col >= 3 && col <= 5;
+                if (isBottomFourRows && !isMiddleOpeningRow) {
+                    cell.state = CellState::Obstacle;
+                    cell.pieceType = PieceType::Obstacle;
+                    cell.colorType = 0;
+                    cell.hasObstacle = true;
+                    cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+                } else {
+                    cell.state = CellState::NormalPiece;
+                    cell.pieceType = PieceType::Normal;
+                    cell.colorType = generator.nextColor(candidateCells, row, col);
+                    cell.hasObstacle = false;
+                    cell.uid = static_cast<int>((row + 1) * 100 + col + 1);
+                }
             }
         }
     }

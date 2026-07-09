@@ -37,7 +37,7 @@ private:
     /** 格子之间的显示间距。 */
     static constexpr float BOARD_MARGIN = 4.0F;
     /** 棋子缩放比例。 */
-    static constexpr float PIECE_SCALE = 0.58F;
+    static constexpr float PIECE_SCALE = 0.72F;
     /** 背景底图资源路径。 */
     static constexpr const char* BOARD_BG_FILE = "picture/img_ig_candy/tileA.png";
     /** 棋盘整体下移偏移。 */
