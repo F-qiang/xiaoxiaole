@@ -28,7 +28,7 @@
 
 - `docs/design/spec.md`：设计规范，描述规则、架构与边界
 - `docs/design/development_order.md`：由规范推导出的开发顺序清单
-- `docs/plan/PR1（基础工程与棋盘底座）.md ~ PR5（UI、重置、配置与工程化收尾）.md`：具体任务拆分
+- `docs/plan/PR1-board-base.md ~ PR5-ui-reset-config-cleanup.md`：具体任务拆分
 - 资源目录统一使用 `resourses/`
 - `docs/game_rule.md`：玩法规则说明书
 
@@ -51,12 +51,12 @@ project/
 │  │  ├─ spec.md
 │  │  └─ development_order.md
 │  ├─ plan/
-│  │  ├─ PR1（基础工程与棋盘底座）.md
-│  │  ├─ PR2（基础交互与交换逻辑）.md
-│  │  ├─ PR3（基础消除、下落与补充）.md
-│  │  ├─ PR4（特效、障碍物与结算逻辑）.md
-│  │  └─ PR5（UI、重置、配置与工程化收尾）.md
-│  └─ rule.md
+│  │  ├─ PR1-board-base.md
+│  │  ├─ PR2-interaction-swap.md
+│  │  ├─ PR3-clear-fall-refill.md
+│  │  ├─ PR4-effects-obstacles-result.md
+│  │  └─ PR5-ui-reset-config-cleanup.md
+│  └─ game_rule.md
 └─ readme.md
 ```
 

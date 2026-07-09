@@ -1,6 +1,6 @@
 # Cocos + C++ 消除游戏开发顺序清单
 
-本文档基于 `docs/design/spec.md` 整理，目标是把规范中的需求拆成**可直接开工的代码实现顺序**，并作为 `docs/plan/PR1（基础工程与棋盘底座）.md ~ PR5（UI、重置、配置与工程化收尾）.md` 的上游依据，用于指导 C++ 类、接口、UI 节点和资源的开发次序。
+本文档基于 `docs/design/spec.md` 整理，目标是把规范中的需求拆成**可直接开工的代码实现顺序**，并作为 `docs/plan/PR1-board-base.md ~ PR5-ui-reset-config-cleanup.md` 的上游依据，用于指导 C++ 类、接口、UI 节点和资源的开发次序。
 
 ---
 
@@ -309,21 +309,21 @@
 
 ## 六、按 PR 的具体落地顺序
 
-### PR1（基础工程与棋盘底座）对应开发顺序
+### PR1（`docs/plan/PR1-board-base.md`）对应开发顺序
 1. 建 `Cell` / `Piece` / `Obstacle` 枚举和结构体
 2. 建 `GameBoard`
 3. 做棋盘初始化
 4. 做固定关卡 JSON 读取
 5. 做棋盘基础渲染
 
-### PR2（基础交互与交换逻辑）对应开发顺序
+### PR2（`docs/plan/PR2-interaction-swap.md`）对应开发顺序
 1. 做选中状态
 2. 做相邻交换
 3. 做无效回退
 4. 做步数统计
 5. 做输入锁定
 
-### PR3（基础消除、下落与补充）对应开发顺序
+### PR3（`docs/plan/PR3-clear-fall-refill.md`）对应开发顺序
 1. 做三连检测
 2. 做消除标记
 3. 做消除动画
@@ -331,7 +331,7 @@
 5. 做连锁检测
 6. 做顶部障碍物阻挡补充
 
-### PR4（特效、障碍物与结算逻辑）对应开发顺序
+### PR4（`docs/plan/PR4-effects-obstacles-result.md`）对应开发顺序
 1. 做特效生成
 2. 做特效触发
 3. 做特效连锁扩散
@@ -339,7 +339,7 @@
 5. 做胜负判定
 6. 做螺旋炸弹与组合技
 
-### PR5（UI、重置、配置与工程化收尾）对应开发顺序
+### PR5（`docs/plan/PR5-ui-reset-config-cleanup.md`）对应开发顺序
 1. 做顶部信息区
 2. 做结算弹窗
 3. 做重置逻辑

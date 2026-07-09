@@ -44,6 +44,8 @@ private:
     void playRocketTrail(int row, int col, bool vertical);
     void playBombCharge(int row, int col);
     void playBombExplosion(int row, int col);
+    void preloadSoundEffects();
+    void playSoundEffect(const char* filePath);
     void shakeScene(float intensity, float duration);
     void triggerSpecialCandy(Cell& specialCell);
     void triggerSpecialCombo(Cell& first, Cell& second);

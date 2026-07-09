@@ -11,6 +11,7 @@
 #include "2d/CCActionInterval.h"
 #include "2d/CCActionInstant.h"
 #include "2d/CCSprite.h"
+#include "audio/include/AudioEngine.h"
 #include <vector>
 
 using namespace cocos2d;
@@ -41,6 +42,10 @@ constexpr float SWAP_ANIMATION_DURATION = 0.12F;
 constexpr float CLEAR_FADE_DURATION = 0.36F;
 constexpr float HIGHLIGHT_SCALE = 0.56F;
 constexpr int HIGHLIGHT_Z_ORDER = 10;
+constexpr const char* SOUND_ROCKET = "music/rorcket.mp3";
+constexpr const char* SOUND_WIN = "music/win.mp3";
+constexpr const char* SOUND_BOMB = "music/baozha.mp3";
+constexpr const char* SOUND_COMMON = "music/common.mp3";
 }
 
 GameScene::~GameScene() {
@@ -56,6 +61,8 @@ bool GameScene::init() {
     if (!Scene::init()) {
         return false;
     }
+
+    preloadSoundEffects();
 
     const auto visibleSize = Director::getInstance()->getVisibleSize();
     const auto visibleOrigin = Director::getInstance()->getVisibleOrigin();
@@ -116,6 +123,20 @@ void GameScene::playClearFeedback() {
     flash->setLocalZOrder(100);
     addChild(flash);
     flash->runAction(Sequence::create(DelayTime::create(0.04F), FadeOut::create(0.08F), RemoveSelf::create(), nullptr));
+}
+
+void GameScene::preloadSoundEffects() {
+    cocos2d::AudioEngine::preload(SOUND_ROCKET, nullptr);
+    cocos2d::AudioEngine::preload(SOUND_WIN, nullptr);
+    cocos2d::AudioEngine::preload(SOUND_BOMB, nullptr);
+    cocos2d::AudioEngine::preload(SOUND_COMMON, nullptr);
+}
+
+void GameScene::playSoundEffect(const char* filePath) {
+    if (filePath == nullptr || *filePath == '\0') {
+        return;
+    }
+    cocos2d::AudioEngine::play2d(filePath, false, 1.0F);
 }
 
 void GameScene::playDropAnimation() {
@@ -387,6 +408,7 @@ void GameScene::resolveMatches() {
         }
     }
     playClearFeedback();
+    playSoundEffect(SOUND_COMMON);
     refreshBoard(false);
 
     runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
@@ -420,6 +442,7 @@ void GameScene::checkLevelState() {
     updateGoalLabel();
     if (remainingObstacles == 0) {
         setSceneState(SceneState::Victory);
+        playSoundEffect(SOUND_WIN);
         showResultMessage("通关成功");
         return;
     }
@@ -683,6 +706,7 @@ void GameScene::clearLineAt(int row, int col, bool vertical) {
         shakeScene(1.8F, 0.22F);
     }), nullptr));
     playRocketTrail(row, col, vertical);
+    playSoundEffect(SOUND_ROCKET);
     playSpecialBurst(row, col, vertical ? Color3B::BLUE : Color3B::GREEN, BOARD_SCALE * 0.24F, 0.28F, HIGHLIGHT_Z_ORDER + 4);
     runAction(Sequence::create(DelayTime::create(0.95F), CallFunc::create([this]() {
         shakeScene(1.0F, 0.10F);
@@ -708,12 +732,13 @@ void GameScene::clearCrossAt(int row, int col) {
         shakeScene(4.5F, 0.24F);
     }), nullptr));
     playBombExplosion(row, col);
+    playSoundEffect(SOUND_BOMB);
     playSpecialBurst(row, col, Color3B::RED, BOARD_SCALE * 0.26F, 0.30F, HIGHLIGHT_Z_ORDER + 5);
     if (mBoardModel == nullptr) {
         return;
     }
-    for (int dr = -1; dr <= 1; ++dr) {
-        for (int dc = -1; dc <= 1; ++dc) {
+    for (int dr = -2; dr <= 2; ++dr) {
+        for (int dc = -2; dc <= 2; ++dc) {
             auto* target = mBoardModel->getCell(row + dr, col + dc);
             if (target == nullptr) {
                 continue;
