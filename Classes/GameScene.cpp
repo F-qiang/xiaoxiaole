@@ -16,10 +16,10 @@
 using namespace cocos2d;
 
 namespace {
-constexpr float TITLE_TOP_OFFSET = 40.0F;
-constexpr float BOARD_TIP_BOTTOM_OFFSET = 70.0F;
-constexpr float STEP_LABEL_TOP_OFFSET = 80.0F;
-constexpr float GOAL_LABEL_TOP_OFFSET = 110.0F;
+constexpr float TITLE_TOP_OFFSET = 14.0F;
+constexpr float BOARD_TIP_BOTTOM_OFFSET = 14.0F;
+constexpr float STEP_LABEL_TOP_OFFSET = 44.0F;
+constexpr float GOAL_LABEL_TOP_OFFSET = 72.0F;
 constexpr const char* TITLE_TEXT = "Cocos2d-x 4.0 Match3 Prototype";
 constexpr const char* BOARD_TIP_TEXT = "Tap a piece, then tap an adjacent piece to swap.";
 constexpr const char* STEP_TEXT_PREFIX = "Steps: ";
@@ -31,8 +31,12 @@ constexpr int TIP_FONT_SIZE = 20;
 constexpr int STEP_FONT_SIZE = 20;
 constexpr int GOAL_FONT_SIZE = 20;
 constexpr float BOARD_CELL_SIZE = 64.0F;
-constexpr float BOARD_MARGIN = 8.0F;
+constexpr float BOARD_MARGIN = 4.0F;
 constexpr float BOARD_SCALE = 0.50F;
+constexpr float BOARD_LAYOUT_SCALE = 1.16F;
+constexpr float BOARD_X_OFFSET = 0.0F;
+constexpr float BOARD_Y_OFFSET = -40.0F;
+constexpr float BOARD_LEFT_RIGHT_EXTRA = 0.0F;
 constexpr float SWAP_ANIMATION_DURATION = 0.12F;
 constexpr float CLEAR_FADE_DURATION = 0.08F;
 constexpr float HIGHLIGHT_SCALE = 0.56F;
@@ -525,12 +529,13 @@ void GameScene::updateGoalLabel() {
 Vec2 GameScene::cellToWorld(int row, int col) const {
     const auto visibleSize = Director::getInstance()->getVisibleSize();
     const auto visibleOrigin = Director::getInstance()->getVisibleOrigin();
-    const float boardWidth = 9 * BOARD_CELL_SIZE + 8 * BOARD_MARGIN;
-    const float boardHeight = 8 * BOARD_CELL_SIZE + 7 * BOARD_MARGIN;
-    const float startX = visibleOrigin.x + (visibleSize.width - boardWidth) * 0.5F;
-    const float startY = visibleOrigin.y + (visibleSize.height - boardHeight) * 0.5F;
-    const float x = startX + col * (BOARD_CELL_SIZE + BOARD_MARGIN) + BOARD_CELL_SIZE * 0.5F;
-    const float y = startY + (7 - row) * (BOARD_CELL_SIZE + BOARD_MARGIN) + BOARD_CELL_SIZE * 0.5F;
+    const float boardWidth = (9 * BOARD_CELL_SIZE + 8 * BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float boardHeight = (8 * BOARD_CELL_SIZE + 7 * BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float cellPitch = (BOARD_CELL_SIZE + BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float startX = visibleOrigin.x + (visibleSize.width - boardWidth) * 0.5F + BOARD_X_OFFSET;
+    const float startY = visibleOrigin.y + (visibleSize.height - boardHeight) * 0.5F + BOARD_Y_OFFSET;
+    const float x = startX + col * cellPitch + BOARD_CELL_SIZE * 0.5F * BOARD_LAYOUT_SCALE;
+    const float y = startY + (7 - row) * cellPitch + BOARD_CELL_SIZE * 0.5F * BOARD_LAYOUT_SCALE;
     return Vec2(x, y);
 }
 
@@ -565,10 +570,11 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
 
     const auto visibleSize = Director::getInstance()->getVisibleSize();
     const auto visibleOrigin = Director::getInstance()->getVisibleOrigin();
-    const float boardWidth = 9 * BOARD_CELL_SIZE + 8 * BOARD_MARGIN;
-    const float boardHeight = 8 * BOARD_CELL_SIZE + 7 * BOARD_MARGIN;
-    const float startX = visibleOrigin.x + (visibleSize.width - boardWidth) * 0.5F;
-    const float startY = visibleOrigin.y + (visibleSize.height - boardHeight) * 0.5F;
+    const float boardWidth = (9 * BOARD_CELL_SIZE + 8 * BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float boardHeight = (8 * BOARD_CELL_SIZE + 7 * BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float cellPitch = (BOARD_CELL_SIZE + BOARD_MARGIN) * BOARD_LAYOUT_SCALE;
+    const float startX = visibleOrigin.x + (visibleSize.width - boardWidth) * 0.5F + BOARD_X_OFFSET;
+    const float startY = visibleOrigin.y + (visibleSize.height - boardHeight) * 0.5F + BOARD_Y_OFFSET;
     const Vec2 location = touch->getLocation();
 
     const float relativeX = location.x - startX;
@@ -579,8 +585,8 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event) {
         return true;
     }
 
-    const int col = static_cast<int>(relativeX / (BOARD_CELL_SIZE + BOARD_MARGIN));
-    const int row = 7 - static_cast<int>(relativeY / (BOARD_CELL_SIZE + BOARD_MARGIN));
+    const int col = static_cast<int>(relativeX / cellPitch);
+    const int row = 7 - static_cast<int>(relativeY / cellPitch);
     auto* cell = mBoardModel->getCell(row, col);
     if (cell == nullptr || cell->state == CellState::Obstacle) {
         mBoardModel->clearSelection();

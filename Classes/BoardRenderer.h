@@ -35,9 +35,15 @@ private:
     /** 单个格子的显示尺寸。 */
     static constexpr float CELL_SIZE = 64.0F;
     /** 格子之间的显示间距。 */
-    static constexpr float BOARD_MARGIN = 8.0F;
+    static constexpr float BOARD_MARGIN = 4.0F;
     /** 棋子缩放比例。 */
-    static constexpr float PIECE_SCALE = 0.50F;
+    static constexpr float PIECE_SCALE = 0.58F;
+    /** 背景底图资源路径。 */
+    static constexpr const char* BOARD_BG_FILE = "picture/img_ig_candy/tileA.png";
+    /** 棋盘整体下移偏移。 */
+    static constexpr float BOARD_Y_OFFSET = -40.0F;
+    /** 棋盘等比例缩放。 */
+    static constexpr float BOARD_SCALE_FACTOR = 1.16F;
 
     /** 普通棋子资源路径表。 */
     std::array<const char*, 4> mNormalPieceFiles;

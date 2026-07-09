@@ -6,7 +6,7 @@ using namespace cocos2d;
 
 namespace {
 constexpr float DESIGN_WIDTH = 720.0F;
-constexpr float DESIGN_HEIGHT = 1280.0F;
+constexpr float DESIGN_HEIGHT = 960.0F;
 }
 
 AppDelegate::AppDelegate() = default;
@@ -30,9 +30,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
         director->setOpenGLView(glView);
     }
 
-    director->setDisplayStats(true);
+    director->setDisplayStats(false);
     director->setAnimationInterval(1.0F / 60.0F);
-    glView->setDesignResolutionSize(DESIGN_WIDTH, DESIGN_HEIGHT, ResolutionPolicy::SHOW_ALL);
+    glView->setDesignResolutionSize(DESIGN_WIDTH, DESIGN_HEIGHT, ResolutionPolicy::FIXED_HEIGHT);
     FileUtils::getInstance()->addSearchPath("Resources");
     FileUtils::getInstance()->addSearchPath("resourse");
 

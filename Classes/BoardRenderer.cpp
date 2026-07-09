@@ -40,10 +40,10 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
     auto winSize = Director::getInstance()->getVisibleSize();
     auto origin = Director::getInstance()->getVisibleOrigin();
 
-    const float boardWidth = BOARD_COLS * CELL_SIZE + (BOARD_COLS - 1) * BOARD_MARGIN;
-    const float boardHeight = BOARD_ROWS * CELL_SIZE + (BOARD_ROWS - 1) * BOARD_MARGIN;
+    const float boardWidth = (BOARD_COLS * CELL_SIZE + (BOARD_COLS - 1) * BOARD_MARGIN) * BOARD_SCALE_FACTOR;
+    const float boardHeight = (BOARD_ROWS * CELL_SIZE + (BOARD_ROWS - 1) * BOARD_MARGIN) * BOARD_SCALE_FACTOR;
     const float startX = origin.x + (winSize.width - boardWidth) * 0.5F;
-    const float startY = origin.y + (winSize.height - boardHeight) * 0.5F;
+    const float startY = origin.y + (winSize.height - boardHeight) * 0.5F + BOARD_Y_OFFSET;
 
     std::array<std::array<int, BOARD_COLS>, BOARD_ROWS> previousSnapshot = mPreviousUids;
     bool hasSnapshot = false;
@@ -61,12 +61,32 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
 
     auto boardNode = Node::create();
     boardNode->setName("board-layer");
+    boardNode->setLocalZOrder(0);
     parent->addChild(boardNode);
 
+    auto bgNode = Node::create();
+    bgNode->setName("board-bg-layer");
+    bgNode->setLocalZOrder(-20);
+    parent->addChild(bgNode);
+
+    const float bgInset = 1.5F;
+    const float pieceInset = 4.0F;
+    const float pieceBaseScale = PIECE_SCALE;
     for (int row = 0; row < BOARD_ROWS; ++row) {
         for (int col = 0; col < BOARD_COLS; ++col) {
-            const float x = startX + col * (CELL_SIZE + BOARD_MARGIN) + CELL_SIZE * 0.5F;
-            const float y = startY + (BOARD_ROWS - 1 - row) * (CELL_SIZE + BOARD_MARGIN) + CELL_SIZE * 0.5F;
+            const float x = startX + col * (CELL_SIZE + BOARD_MARGIN) * BOARD_SCALE_FACTOR + CELL_SIZE * 0.5F * BOARD_SCALE_FACTOR;
+            const float y = startY + (BOARD_ROWS - 1 - row) * (CELL_SIZE + BOARD_MARGIN) * BOARD_SCALE_FACTOR + CELL_SIZE * 0.5F * BOARD_SCALE_FACTOR;
+
+            auto bgSprite = Sprite::create(BOARD_BG_FILE);
+            if (bgSprite != nullptr) {
+                const float bgScaleX = ((CELL_SIZE - bgInset * 2.0F) * BOARD_SCALE_FACTOR) / bgSprite->getContentSize().width;
+                const float bgScaleY = ((CELL_SIZE - bgInset * 2.0F) * BOARD_SCALE_FACTOR) / bgSprite->getContentSize().height;
+                bgSprite->setPosition(Vec2(x, y));
+                bgSprite->setScaleX(bgScaleX);
+                bgSprite->setScaleY(bgScaleY);
+                bgSprite->setOpacity(250);
+                bgNode->addChild(bgSprite);
+            }
 
             const auto* cell = board.getCell(row, col);
             if (cell == nullptr || cell->state == CellState::EmptyCell) {
@@ -88,7 +108,9 @@ void BoardRenderer::render(Node* parent, const GameBoard& board, bool animateDro
 
             auto piece = Sprite::create(resource);
             if (piece != nullptr) {
-                piece->setScale(PIECE_SCALE);
+                const float scaledSize = (CELL_SIZE - pieceInset * 2.0F) * BOARD_SCALE_FACTOR;
+                const float pieceScale = std::min(pieceBaseScale, scaledSize / std::max(piece->getContentSize().width, piece->getContentSize().height));
+                piece->setScale(pieceScale);
                 const bool isObstacle = cell->state == CellState::Obstacle;
                 const bool shouldAnimate = animateDrop && hasSnapshot && !isObstacle && previousSnapshot[row][col] != cell->uid;
                 if (shouldAnimate) {
