@@ -40,6 +40,11 @@ private:
     bool isLineMatch(const std::vector<Cell>& matchedCells) const;
     bool isTOrLMatch(const std::vector<Cell>& matchedCells) const;
     void playSpecialBurst(int row, int col, cocos2d::Color3B color, float scale, float duration, int zOrder);
+    void playRocketCharge(int row, int col, bool vertical);
+    void playRocketTrail(int row, int col, bool vertical);
+    void playBombCharge(int row, int col);
+    void playBombExplosion(int row, int col);
+    void shakeScene(float intensity, float duration);
     void triggerSpecialCandy(Cell& specialCell);
     void triggerSpecialCombo(Cell& first, Cell& second);
     void clearLineAt(int row, int col, bool vertical);

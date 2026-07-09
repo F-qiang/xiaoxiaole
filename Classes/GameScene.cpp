@@ -38,7 +38,7 @@ constexpr float BOARD_X_OFFSET = 0.0F;
 constexpr float BOARD_Y_OFFSET = -40.0F;
 constexpr float BOARD_LEFT_RIGHT_EXTRA = 0.0F;
 constexpr float SWAP_ANIMATION_DURATION = 0.12F;
-constexpr float CLEAR_FADE_DURATION = 0.08F;
+constexpr float CLEAR_FADE_DURATION = 0.36F;
 constexpr float HIGHLIGHT_SCALE = 0.56F;
 constexpr int HIGHLIGHT_Z_ORDER = 10;
 }
@@ -316,16 +316,61 @@ void GameScene::resolveMatches() {
 
     for (std::size_t i = 0; i < matchedCells.size(); ++i) {
         const auto& cell = matchedCells[i];
-        auto* flash = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
-        if (flash != nullptr) {
-            flash->setPosition(cellToWorld(cell.row, cell.col));
-            flash->setScale(BOARD_SCALE * 0.42F);
-            flash->setColor(Color3B::WHITE);
-            flash->setOpacity(220);
-            flash->setLocalZOrder(HIGHLIGHT_Z_ORDER + 1);
-            addChild(flash);
-            flash->runAction(Sequence::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 0.15F), FadeOut::create(CLEAR_FADE_DURATION), RemoveSelf::create(), nullptr));
+        const auto position = cellToWorld(cell.row, cell.col);
+        auto* burst = Sprite::create("picture/img_ig_candy/efx_Rainbowefx.png");
+        if (burst != nullptr) {
+            burst->setPosition(position);
+            burst->setScale(BOARD_SCALE * 0.34F);
+            burst->setOpacity(255);
+            burst->setLocalZOrder(HIGHLIGHT_Z_ORDER + 4);
+            addChild(burst);
+            burst->runAction(Sequence::create(Spawn::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 1.20F), RotateBy::create(CLEAR_FADE_DURATION, 120.0F), FadeOut::create(CLEAR_FADE_DURATION), nullptr), RemoveSelf::create(), nullptr));
         }
+
+        auto* lightning = Sprite::create("picture/img_ig_candy/efx_lightning0.png");
+        if (lightning != nullptr) {
+            lightning->setPosition(position);
+            lightning->setScale(BOARD_SCALE * 0.82F);
+            lightning->setOpacity(240);
+            lightning->setLocalZOrder(HIGHLIGHT_Z_ORDER + 5);
+            addChild(lightning);
+            lightning->runAction(Sequence::create(Spawn::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 1.05F), FadeOut::create(CLEAR_FADE_DURATION), nullptr), RemoveSelf::create(), nullptr));
+        }
+
+        static constexpr const char* PARTICLE_FILES[] = {
+            "picture/img_ig_candy/particle_die_candy_1_1_01.png",
+            "picture/img_ig_candy/particle_die_candy_1_2_01.png",
+            "picture/img_ig_candy/particle_die_candy_1_3_01.png",
+            "picture/img_ig_candy/particle_die_candy_1_4_01.png",
+            "picture/img_ig_candy/particle_die_candy_1_5_01.png",
+            "picture/img_ig_candy/particle_die_candy_1_6_01.png",
+        };
+        for (int particleIndex = 0; particleIndex < 6; ++particleIndex) {
+            auto* shard = Sprite::create(PARTICLE_FILES[particleIndex]);
+            if (shard == nullptr) {
+                continue;
+            }
+            const float directionX = particleIndex % 3 == 0 ? -1.0F : particleIndex % 3 == 1 ? 0.0F : 1.0F;
+            const float directionY = particleIndex < 3 ? 1.0F : -1.0F;
+            const float distance = 26.0F + static_cast<float>(particleIndex) * 3.0F;
+            shard->setPosition(position);
+            shard->setScale(BOARD_SCALE * 0.42F);
+            shard->setOpacity(255);
+            shard->setLocalZOrder(HIGHLIGHT_Z_ORDER + 6);
+            addChild(shard);
+            shard->runAction(Sequence::create(Spawn::create(MoveBy::create(CLEAR_FADE_DURATION, Vec2(directionX * distance, directionY * distance)), ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 0.16F), RotateBy::create(CLEAR_FADE_DURATION, directionX * 180.0F), FadeOut::create(CLEAR_FADE_DURATION), nullptr), RemoveSelf::create(), nullptr));
+        }
+
+        auto* ring = Sprite::create("picture/img_ig_candy/particle_other_dot_candy.png");
+        if (ring != nullptr) {
+            ring->setPosition(position);
+            ring->setScale(BOARD_SCALE * 0.28F);
+            ring->setOpacity(255);
+            ring->setLocalZOrder(HIGHLIGHT_Z_ORDER + 3);
+            addChild(ring);
+            ring->runAction(Sequence::create(Spawn::create(ScaleTo::create(CLEAR_FADE_DURATION, BOARD_SCALE * 1.25F), FadeOut::create(CLEAR_FADE_DURATION), nullptr), RemoveSelf::create(), nullptr));
+        }
+
         if (specialIndex >= 0 && static_cast<int>(i) == specialIndex) {
             continue;
         }
@@ -344,7 +389,7 @@ void GameScene::resolveMatches() {
     playClearFeedback();
     refreshBoard(false);
 
-    runAction(Sequence::create(DelayTime::create(0.10F), CallFunc::create([this]() {
+    runAction(Sequence::create(DelayTime::create(0.36F), CallFunc::create([this]() {
         if (mBoardModel != nullptr && mSceneState != SceneState::Victory && mSceneState != SceneState::Failure) {
             mBoardModel->collapseAndRefill();
             mPendingSpecialRow = -1;
@@ -408,24 +453,240 @@ void GameScene::clearAdjacentObstacles(const std::vector<Cell>& matchedCells) {
 }
 
 void GameScene::playSpecialBurst(int row, int col, Color3B color, float scale, float duration, int zOrder) {
-    auto* effect = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
-    if (effect == nullptr) {
+    auto* center = Sprite::create("picture/img_ig_candy/efx_Rainbowefx.png");
+    if (center == nullptr) {
+        center = Sprite::create("picture/img_game_common/goal_Animal_1_0.png");
+    }
+    if (center == nullptr) {
         return;
     }
-    effect->setPosition(cellToWorld(row, col));
-    effect->setScale(scale);
-    effect->setColor(color);
-    effect->setOpacity(220);
-    effect->setLocalZOrder(zOrder);
-    addChild(effect);
-    effect->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration, scale * 1.25F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+    const auto position = cellToWorld(row, col);
+    center->setPosition(position);
+    center->setScale(scale * 0.72F);
+    center->setColor(color);
+    center->setOpacity(255);
+    center->setLocalZOrder(zOrder);
+    addChild(center);
+    center->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration, scale * 1.65F), RotateBy::create(duration, 240.0F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+
+    auto* flash = Sprite::create("picture/img_ig_candy/efx_lightning0.png");
+    if (flash != nullptr) {
+        flash->setPosition(position);
+        flash->setScale(scale * 0.95F);
+        flash->setOpacity(255);
+        flash->setColor(color);
+        flash->setLocalZOrder(zOrder + 1);
+        addChild(flash);
+        flash->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration * 0.85F, scale * 2.0F), FadeOut::create(duration * 0.85F), nullptr), RemoveSelf::create(), nullptr));
+    }
+
+    auto* ring = Sprite::create("picture/img_ig_candy/particle_other_dot_candy.png");
+    if (ring != nullptr) {
+        ring->setPosition(position);
+        ring->setScale(scale * 0.35F);
+        ring->setOpacity(240);
+        ring->setColor(Color3B::WHITE);
+        ring->setLocalZOrder(zOrder + 2);
+        addChild(ring);
+        ring->runAction(Sequence::create(Spawn::create(ScaleTo::create(duration, scale * 2.4F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+    }
+}
+
+void GameScene::playRocketCharge(int row, int col, bool vertical) {
+    const auto position = cellToWorld(row, col);
+    auto* glow = Sprite::create("picture/img_ig_candy/efx_Rainbowefx.png");
+    if (glow == nullptr) {
+        return;
+    }
+    glow->setPosition(position);
+    glow->setScale(BOARD_SCALE * 0.38F);
+    glow->setOpacity(220);
+    glow->setColor(Color3B::YELLOW);
+    glow->setLocalZOrder(HIGHLIGHT_Z_ORDER + 12);
+    glow->setRotation(vertical ? 90.0F : 0.0F);
+    addChild(glow);
+    glow->runAction(Sequence::create(Repeat::create(Sequence::create(FadeTo::create(0.14F, 255), FadeTo::create(0.14F, 100), nullptr), 3), RemoveSelf::create(), nullptr));
+
+    auto* piece = mBoardModel != nullptr ? mBoardModel->getCell(row, col) : nullptr;
+    if (piece != nullptr && piece->state == CellState::SpecialPiece) {
+        auto* jump = Sprite::create("picture/img_game_common/efx_arrow_1.png");
+        if (jump != nullptr) {
+            jump->setPosition(position);
+            jump->setScale(BOARD_SCALE * 0.16F);
+            jump->setRotation(vertical ? 90.0F : 0.0F);
+            jump->setOpacity(255);
+            jump->setColor(Color3B::WHITE);
+            jump->setLocalZOrder(HIGHLIGHT_Z_ORDER + 13);
+            addChild(jump);
+            jump->runAction(Sequence::create(Spawn::create(MoveBy::create(0.22F, Vec2(0.0F, 8.0F)), ScaleTo::create(0.22F, BOARD_SCALE * 0.20F), FadeOut::create(0.22F), nullptr), RemoveSelf::create(), nullptr));
+        }
+    }
+}
+
+void GameScene::playRocketTrail(int row, int col, bool vertical) {
+    const auto base = cellToWorld(row, col);
+    const float travel = vertical ? static_cast<float>(GameBoard::ROWS - 1) : static_cast<float>(GameBoard::COLS - 1);
+    const float distance = travel * (BOARD_CELL_SIZE + BOARD_MARGIN) * BOARD_LAYOUT_SCALE * 1.35F;
+    const Vec2 direction = vertical ? Vec2(0.0F, 1.0F) : Vec2(1.0F, 0.0F);
+    const float rotation = vertical ? 90.0F : 0.0F;
+
+    auto spawnArrow = [this, base, direction, rotation, distance](float offset, float scale, float duration, int zOrder, float opacity, bool brightTip) {
+        auto* arrow = Sprite::create("picture/img_game_common/efx_arrow_1.png");
+        if (arrow == nullptr) {
+            return;
+        }
+        arrow->setPosition(base - direction * offset);
+        arrow->setRotation(rotation);
+        arrow->setScale(scale);
+        arrow->setOpacity(static_cast<unsigned char>(opacity));
+        arrow->setColor(brightTip ? Color3B::YELLOW : Color3B::WHITE);
+        arrow->setLocalZOrder(zOrder);
+        addChild(arrow);
+        arrow->runAction(Sequence::create(Spawn::create(MoveBy::create(duration, direction * (offset + 16.0F)), ScaleTo::create(duration, scale * 1.18F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+
+        if (brightTip) {
+            auto* tipGlow = Sprite::create("picture/img_game_common/efx_arrow_1.png");
+            if (tipGlow != nullptr) {
+                tipGlow->setPosition(base + direction * 22.0F);
+                tipGlow->setRotation(rotation);
+                tipGlow->setScale(scale * 0.92F);
+                tipGlow->setOpacity(255);
+                tipGlow->setColor(Color3B::WHITE);
+                tipGlow->setLocalZOrder(zOrder + 2);
+                addChild(tipGlow);
+                tipGlow->runAction(Sequence::create(Spawn::create(MoveBy::create(duration, direction * (distance * 0.28F)), ScaleTo::create(duration, scale * 0.72F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+            }
+
+            auto* tip = Sprite::create("picture/img_game_common/efx_arrow_1.png");
+            if (tip != nullptr) {
+                tip->setPosition(base + direction * 26.0F);
+                tip->setRotation(rotation);
+                tip->setScale(scale * 0.72F);
+                tip->setOpacity(255);
+                tip->setColor(Color3B::WHITE);
+                tip->setLocalZOrder(zOrder + 1);
+                addChild(tip);
+                tip->runAction(Sequence::create(Spawn::create(MoveBy::create(duration, direction * distance), ScaleTo::create(duration, scale * 0.58F), FadeOut::create(duration), nullptr), RemoveSelf::create(), nullptr));
+            }
+        }
+    };
+
+    spawnArrow(180.0F, BOARD_SCALE * 0.30F, 0.95F, HIGHLIGHT_Z_ORDER + 8, 255.0F, false);
+    spawnArrow(120.0F, BOARD_SCALE * 0.26F, 0.82F, HIGHLIGHT_Z_ORDER + 9, 240.0F, false);
+    spawnArrow(60.0F, BOARD_SCALE * 0.22F, 0.70F, HIGHLIGHT_Z_ORDER + 10, 220.0F, true);
+
+    auto* streak = Sprite::create("picture/img_ig_candy/efx_arrow_1.png");
+    if (streak != nullptr) {
+        streak->setPosition(base - direction * 120.0F);
+        streak->setRotation(rotation);
+        streak->setScale(BOARD_SCALE * 0.22F);
+        streak->setOpacity(245);
+        streak->setColor(Color3B::YELLOW);
+        streak->setLocalZOrder(HIGHLIGHT_Z_ORDER + 11);
+        addChild(streak);
+        streak->runAction(Sequence::create(Spawn::create(MoveBy::create(0.78F, direction * (distance + 36.0F)), ScaleTo::create(0.78F, BOARD_SCALE * 0.34F), FadeOut::create(0.78F), nullptr), RemoveSelf::create(), nullptr));
+    }
+}
+
+void GameScene::playBombCharge(int row, int col) {
+    const auto position = cellToWorld(row, col);
+    auto* glow = Sprite::create("picture/img_ig_candy/efx_Rainbowefx.png");
+    if (glow == nullptr) {
+        return;
+    }
+    glow->setPosition(position);
+    glow->setScale(BOARD_SCALE * 0.42F);
+    glow->setOpacity(240);
+    glow->setColor(Color3B::RED);
+    glow->setLocalZOrder(HIGHLIGHT_Z_ORDER + 12);
+    addChild(glow);
+    glow->runAction(Sequence::create(Repeat::create(Sequence::create(ScaleTo::create(0.12F, BOARD_SCALE * 0.58F), ScaleTo::create(0.12F, BOARD_SCALE * 0.42F), nullptr), 3), RemoveSelf::create(), nullptr));
+}
+
+void GameScene::playBombExplosion(int row, int col) {
+    const auto position = cellToWorld(row, col);
+    auto* core = Sprite::create("picture/img_ig_candy/efx_Rainbowefx.png");
+    if (core != nullptr) {
+        core->setPosition(position);
+        core->setScale(BOARD_SCALE * 0.52F);
+        core->setOpacity(255);
+        core->setColor(Color3B::RED);
+        core->setLocalZOrder(HIGHLIGHT_Z_ORDER + 9);
+        addChild(core);
+        core->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.24F, BOARD_SCALE * 1.55F), RotateBy::create(0.24F, 480.0F), FadeOut::create(0.24F), nullptr), RemoveSelf::create(), nullptr));
+    }
+
+    auto* shock = Sprite::create("picture/img_ig_candy/particle_other_dot_candy.png");
+    if (shock != nullptr) {
+        shock->setPosition(position);
+        shock->setScale(BOARD_SCALE * 0.28F);
+        shock->setOpacity(255);
+        shock->setColor(Color3B::WHITE);
+        shock->setLocalZOrder(HIGHLIGHT_Z_ORDER + 10);
+        addChild(shock);
+        shock->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.42F, BOARD_SCALE * 2.6F), FadeOut::create(0.42F), nullptr), RemoveSelf::create(), nullptr));
+    }
+
+    auto* shock2 = Sprite::create("picture/img_ig_candy/efx_lightning0.png");
+    if (shock2 != nullptr) {
+        shock2->setPosition(position);
+        shock2->setScale(BOARD_SCALE * 0.36F);
+        shock2->setOpacity(230);
+        shock2->setColor(Color3B::WHITE);
+        shock2->setLocalZOrder(HIGHLIGHT_Z_ORDER + 11);
+        addChild(shock2);
+        shock2->runAction(Sequence::create(Spawn::create(ScaleTo::create(0.34F, BOARD_SCALE * 2.0F), FadeOut::create(0.34F), nullptr), RemoveSelf::create(), nullptr));
+    }
+
+    static constexpr const char* BURST_FILES[] = {
+        "picture/img_ig_candy/particle_die_candy_1_1_01.png",
+        "picture/img_ig_candy/particle_die_candy_1_2_01.png",
+        "picture/img_ig_candy/particle_die_candy_1_3_01.png",
+        "picture/img_ig_candy/particle_die_candy_1_4_01.png",
+        "picture/img_ig_candy/particle_die_candy_1_5_01.png",
+        "picture/img_ig_candy/particle_die_candy_1_6_01.png",
+    };
+    for (int i = 0; i < 6; ++i) {
+        auto* spark = Sprite::create(BURST_FILES[i]);
+        if (spark == nullptr) {
+            continue;
+        }
+        const float angle = static_cast<float>(i) * 60.0F;
+        const float rad = angle * 3.1415926F / 180.0F;
+        spark->setPosition(position);
+        spark->setScale(BOARD_SCALE * 0.20F);
+        spark->setOpacity(255);
+        spark->setColor(Color3B::WHITE);
+        spark->setRotation(angle);
+        spark->setLocalZOrder(HIGHLIGHT_Z_ORDER + 13);
+        addChild(spark);
+        spark->runAction(Sequence::create(Spawn::create(MoveBy::create(0.34F, Vec2(std::cos(rad) * 48.0F, std::sin(rad) * 48.0F)), ScaleTo::create(0.34F, BOARD_SCALE * 0.08F), FadeOut::create(0.34F), nullptr), RemoveSelf::create(), nullptr));
+    }
+}
+
+void GameScene::shakeScene(float intensity, float duration) {
+    auto* actionTarget = getActionManager() != nullptr ? this : nullptr;
+    if (actionTarget == nullptr) {
+        return;
+    }
+    const Vec2 original = getPosition();
+    auto* shake = Sequence::create(MoveBy::create(0.05F, Vec2(-intensity, 0.0F)), MoveBy::create(0.05F, Vec2(intensity * 2.0F, 0.0F)), MoveBy::create(0.05F, Vec2(-intensity * 1.5F, 0.0F)), MoveBy::create(0.05F, Vec2(0.0F, intensity)), MoveBy::create(0.05F, Vec2(0.0F, -intensity * 2.0F)), MoveBy::create(0.05F, Vec2(0.0F, intensity)), MoveTo::create(0.05F, original), nullptr);
+    runAction(shake);
 }
 
 void GameScene::clearLineAt(int row, int col, bool vertical) {
     if (mBoardModel == nullptr) {
         return;
     }
-    playSpecialBurst(row, col, vertical ? Color3B::BLUE : Color3B::GREEN, BOARD_SCALE * 0.24F, 0.16F, HIGHLIGHT_Z_ORDER + 4);
+    playRocketCharge(row, col, vertical);
+    runAction(Sequence::create(DelayTime::create(0.22F), CallFunc::create([this]() {
+        shakeScene(1.8F, 0.22F);
+    }), nullptr));
+    playRocketTrail(row, col, vertical);
+    playSpecialBurst(row, col, vertical ? Color3B::BLUE : Color3B::GREEN, BOARD_SCALE * 0.24F, 0.28F, HIGHLIGHT_Z_ORDER + 4);
+    runAction(Sequence::create(DelayTime::create(0.95F), CallFunc::create([this]() {
+        shakeScene(1.0F, 0.10F);
+    }), nullptr));
     for (std::size_t index = 0; index < (vertical ? GameBoard::ROWS : GameBoard::COLS); ++index) {
         const int targetRow = vertical ? static_cast<int>(index) : row;
         const int targetCol = vertical ? col : static_cast<int>(index);
@@ -442,7 +703,12 @@ void GameScene::clearLineAt(int row, int col, bool vertical) {
 }
 
 void GameScene::clearCrossAt(int row, int col) {
-    playSpecialBurst(row, col, Color3B::RED, BOARD_SCALE * 0.26F, 0.18F, HIGHLIGHT_Z_ORDER + 5);
+    playBombCharge(row, col);
+    runAction(Sequence::create(DelayTime::create(0.20F), CallFunc::create([this]() {
+        shakeScene(4.5F, 0.24F);
+    }), nullptr));
+    playBombExplosion(row, col);
+    playSpecialBurst(row, col, Color3B::RED, BOARD_SCALE * 0.26F, 0.30F, HIGHLIGHT_Z_ORDER + 5);
     if (mBoardModel == nullptr) {
         return;
     }
@@ -487,8 +753,8 @@ void GameScene::triggerSpecialCombo(Cell& first, Cell& second) {
     const bool firstHorizontal = GameBoard::isHorizontalClearCandy(first);
     const bool secondHorizontal = GameBoard::isHorizontalClearCandy(second);
 
-    playComboBurst(first.row, first.col, Color3B::WHITE, BOARD_SCALE * 0.26F, 0.12F, HIGHLIGHT_Z_ORDER + 6);
-    playComboBurst(second.row, second.col, Color3B::WHITE, BOARD_SCALE * 0.26F, 0.12F, HIGHLIGHT_Z_ORDER + 6);
+    playComboBurst(first.row, first.col, Color3B::WHITE, BOARD_SCALE * 0.34F, 0.22F, HIGHLIGHT_Z_ORDER + 6);
+    playComboBurst(second.row, second.col, Color3B::WHITE, BOARD_SCALE * 0.34F, 0.22F, HIGHLIGHT_Z_ORDER + 6);
 
     if (firstBomb || secondBomb) {
         clearCrossAt(first.row, first.col);
@@ -514,13 +780,16 @@ void GameScene::triggerSpecialCandy(Cell& specialCell) {
         return;
     }
 
-    playSpecialBurst(specialCell.row, specialCell.col, Color3B::WHITE, BOARD_SCALE * 0.24F, 0.14F, HIGHLIGHT_Z_ORDER + 4);
+    const bool isBomb = GameBoard::isBombCandy(specialCell);
+    const bool isVertical = GameBoard::isVerticalClearCandy(specialCell);
+    const bool isHorizontal = GameBoard::isHorizontalClearCandy(specialCell);
+    playSpecialBurst(specialCell.row, specialCell.col, Color3B::WHITE, BOARD_SCALE * 0.24F, 0.22F, HIGHLIGHT_Z_ORDER + 4);
 
-    if (GameBoard::isBombCandy(specialCell)) {
+    if (isBomb) {
         clearCrossAt(specialCell.row, specialCell.col);
-    } else if (GameBoard::isVerticalClearCandy(specialCell)) {
+    } else if (isVertical) {
         clearLineAt(specialCell.row, specialCell.col, true);
-    } else if (GameBoard::isHorizontalClearCandy(specialCell)) {
+    } else if (isHorizontal) {
         clearLineAt(specialCell.row, specialCell.col, false);
     }
     mBoardModel->clearCell(specialCell);
